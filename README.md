@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Search Lab
+
+Interactive lab for comparing uninformed search, informed search, and adversarial game-tree algorithms. Built with Next.js, TypeScript, and Tailwind CSS.
+
+## Modules
+
+- **Sliding Puzzle** — BFS, Dijkstra, and A* on an N-puzzle with optional custom image tiles
+- **Tic-Tac-Toe AI** — Minimax and Alpha-Beta pruning with performance metrics
+
+> **Note:** Algorithm implementations are currently stubbed. Types, UI shell, tests, and benchmark scripts are in place for incremental development.
+
+## Prerequisites
+
+- [Bun](https://bun.sh) (recommended) or Node.js 20+
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+bun install
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+| ------- | ----------- |
+| `bun dev` | Start development server |
+| `bun run build` | Production build |
+| `bun run start` | Start production server |
+| `bun test` | Run Vitest in watch mode |
+| `bun test:run` | Run Vitest once |
+| `bun run benchmark:puzzle` | Puzzle algorithm benchmark (stub) |
+| `bun run benchmark:tictactoe` | Tic-tac-toe benchmark (stub) |
+| `bun run lint` | ESLint |
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+├── app/              # Next.js App Router pages
+├── modules/
+│   ├── puzzle/       # N-puzzle search algorithms & UI
+│   └── tictactoe/    # Game-tree AI algorithms & UI
+├── shared/           # Shared components, types, utils
+└── styles/           # Global CSS (Tailwind v4)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+tests/                # Vitest unit tests (todo stubs)
+scripts/              # CLI benchmark scripts
+docs/                 # Analysis templates & deliverables
+public/               # Static assets
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Tech Stack
 
-## Deploy on Vercel
+- Next.js 16 (App Router, Turbopack)
+- React 19
+- TypeScript
+- Tailwind CSS v4
+- Lucide React
+- Framer Motion
+- react-dropzone
+- Vitest
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Documentation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [`docs/comparative-analysis.md`](docs/comparative-analysis.md) — analysis template
+- [`docs/final-report.pdf`](docs/final-report.pdf) — replace with final report
+- [`docs/screenshots/`](docs/screenshots/) — dashboard and results screenshots

@@ -33,26 +33,25 @@ By the end I should be able to:
 | Deliverable | Runnable app + README/report + zip |
 | Grading | 100 pts + up to 10 bonus (capped at 110) |
 | Submission name | `Group{N}_HW1.zip` or `LastName_HW1.zip` |
-| Stack (ours) | Next.js 16, React 19, TypeScript, Tailwind v4, Bun |
+| Stack (ours) | React 19, Vite 6, TypeScript, Tailwind v4, Bun |
 
 ---
 
 ## 3. How to Run (for the grader)
 
-> Our stack is a Node/Bun app, NOT a double-click `index.html`. The grader's
-> default is `index.html` or `run.sh`, so we MUST provide a one-command launch
-> and keep setup under 5 minutes or risk a Code Quality deduction.
-
 ```bash
-# Install + start (development)
-bun install
-bun dev          # open http://localhost:3000
+# Option 1: one-command launch
+chmod +x run.sh && ./run.sh
 
-# Or production
-bun install && bun run build && bun run start
+# Option 2: manual
+bun install
+bun dev          # open http://localhost:5173
+
+# Production preview
+bun install && bun run build && bun run preview
 ```
 
-TODO: add a `run.sh` wrapper and document expected startup time in README.
+`run.sh` is included. Dev server starts in under a minute after install.
 
 ---
 
@@ -64,31 +63,31 @@ TODO: add a `run.sh` wrapper and document expected startup time in README.
 
 Algorithms (all three, independent solvers, each with a nodes-expanded counter):
 
-- [ ] **Blind search** — BFS *or* DFS (pick one) → `src/modules/puzzle/algorithms/bfs.ts`
-- [ ] **Dijkstra** — separate solver even though it equals BFS on unit costs → `dijkstra.ts`
-- [ ] **A\*** — required; admissible heuristic (Manhattan recommended) → `astar.ts` + `heuristics.ts`
-- [ ] Supporting: `priorityQueue.ts`, `utils/boardHelpers.ts`, `utils/solvability.ts`
+- [ ] **Blind search** — BFS *or* DFS (pick one) → `src/modules/puzzle/solvers.ts` (`solveBfs`)
+- [ ] **Dijkstra** — separate solver even though it equals BFS on unit costs → `solvers.ts` (`solveDijkstra`)
+- [ ] **A\*** — required; admissible heuristic (Manhattan recommended) → `solvers.ts` (`solveAstar`, `manhattanDistance`)
+- [ ] Supporting: `PriorityQueue` in `solvers.ts`, board logic in `board.ts`
 
 Interactive features:
 
-- [ ] **Image upload** (.jpg + .png), auto resize/crop to square, slice into 3×3 → `services/imageSlicer.ts`
-- [ ] **Default numbered puzzle** (1–8 + blank), playable without an image → already in `boardHelpers.createSolvedState`
-- [ ] **Shuffle** into a *solvable* state → `services/puzzleGenerator.ts`
-- [ ] **Manual play** — click/drag tiles → `hooks/usePuzzle.ts` + `components/PuzzleBoard.tsx`
-- [ ] **Step-by-step solve** — watch the optimal solution unfold one move at a time → `services/puzzleAnimator.ts`
+- [ ] **Image upload** (.jpg + .png), auto resize/crop to square, slice into 3×3 → `src/modules/puzzle/image.ts`
+- [ ] **Default numbered puzzle** (1–8 + blank), playable without an image → `board.ts` (`createSolvedState`)
+- [ ] **Shuffle** into a *solvable* state → `image.ts` (`shufflePuzzle`)
+- [ ] **Manual play** — click/drag tiles → `src/pages/Puzzle.tsx`
+- [ ] **Step-by-step solve** — watch the optimal solution unfold one move at a time → `Puzzle.tsx`
 
 ### Module B — Tic-Tac-Toe (25 + 10 pts)
 
 Algorithms (both):
 
-- [ ] **Minimax** — eval returns +10 (AI win) / -10 (loss) / 0 (draw) → `algorithms/minimax.ts` + `evaluation.ts`
-- [ ] **Alpha-Beta** — correct pruning on top of Minimax, fewer nodes → `algorithms/alphaBeta.ts`
-- [ ] Supporting: `utils/winnerDetection.ts`, `utils/boardHelpers.ts`, `services/gameManager.ts`
+- [ ] **Minimax** — eval returns +10 (AI win) / -10 (loss) / 0 (draw) → `src/modules/tictactoe/ai.ts`
+- [ ] **Alpha-Beta** — correct pruning on top of Minimax, fewer nodes → `ai.ts` (`findBestMoveAlphaBeta`)
+- [ ] Supporting: `src/modules/tictactoe/game.ts` (board, winner detection, `GameManager`)
 
 Game modes:
 
 - [ ] **Human vs AI** — pick algorithm (Minimax/Alpha-Beta), choose to play first or second
-- [ ] **AI vs AI (autoplay)** — step-by-step move visualization, pick algorithm for each AI, show outcome → `services/autoplay.ts`
+- [ ] **AI vs AI (autoplay)** — step-by-step move visualization, pick algorithm for each AI, show outcome → `autoplay.ts` + `TicTacToe.tsx`
 - [ ] (Optional bonus) Human vs Human
 
 > Note: optimal vs optimal always draws — that's correct, not a bug.
@@ -102,7 +101,7 @@ Display for both modules:
 - [ ] **Solution Length** (Module A)
 - [ ] **Pruning Efficiency** (Module B, Alpha-Beta only) = `(minimaxNodes - alphaBetaNodes) / minimaxNodes`
 - [ ] Prefer **live updates**; a final summary is acceptable but scores lower
-- [ ] Bonus: a truly shared dashboard component across both modules → `shared/components/MetricCard.tsx`
+- [ ] Bonus: a truly shared dashboard component across both modules → `src/shared/MetricCard.tsx`
 
 ### Interface Design (counts toward Code Quality)
 
@@ -158,7 +157,7 @@ Explain in plain English why the chosen A\* heuristic never overestimates. Examp
 
 - [ ] **README.md** with sections: Overview / How to Run / Architecture / Algorithms Implemented / Credits (+ heuristic justification + Comparative Analysis, or in a PDF)
 - [ ] **Complete source code**, clean folder structure, all assets included
-- [ ] **One-command launch** (`run.sh` for our Node stack) with setup notes
+- [ ] **One-command launch** (`run.sh`) with setup notes
 - [ ] **Dependency file** (`package.json` — already present)
 - [ ] Zip as `Group{N}_HW1.zip`, upload to Canvas, comment teammates
 

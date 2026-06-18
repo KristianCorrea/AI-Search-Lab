@@ -1,70 +1,72 @@
 # AI Search Lab
 
-Interactive lab for comparing uninformed search, informed search, and adversarial game-tree algorithms. Built with Next.js, TypeScript, and Tailwind CSS.
+Interactive lab for comparing uninformed search, informed search, and adversarial game-tree algorithms.
 
 ## Modules
 
-- **Sliding Puzzle** — BFS, Dijkstra, and A* on an N-puzzle with optional custom image tiles
+- **Sliding Puzzle** — BFS, Dijkstra, and A* on an 8-puzzle with optional custom image tiles
 - **Tic-Tac-Toe AI** — Minimax and Alpha-Beta pruning with performance metrics
 
-> **Note:** Algorithm implementations are currently stubbed. Types, UI shell, tests, and benchmark scripts are in place for incremental development.
+> Algorithm implementations are stubbed. See [ROADMAP.md](ROADMAP.md) for implementation tasks.
 
-## Prerequisites
-
-- [Bun](https://bun.sh) (recommended) or Node.js 20+
-
-## Getting Started
+## Quick Start
 
 ```bash
-bun install
-bun dev
+# Option 1: run script (installs deps + starts dev server)
+chmod +x run.sh
+./run.sh
+
+# Option 2: manual
+bun install   # or npm install
+bun dev       # open http://localhost:5173
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Production build:
+
+```bash
+bun run build
+bun run preview   # serves dist/ at http://localhost:4173
+```
 
 ## Scripts
 
 | Command | Description |
 | ------- | ----------- |
-| `bun dev` | Start development server |
-| `bun run build` | Production build |
-| `bun run start` | Start production server |
-| `bun test` | Run Vitest in watch mode |
-| `bun test:run` | Run Vitest once |
-| `bun run benchmark:puzzle` | Puzzle algorithm benchmark (stub) |
-| `bun run benchmark:tictactoe` | Tic-tac-toe benchmark (stub) |
-| `bun run lint` | ESLint |
+| `bun dev` | Start Vite dev server |
+| `bun run build` | Production build → `dist/` |
+| `bun run preview` | Preview production build |
+| `bun test` | Vitest watch mode |
+| `bun test:run` | Vitest single run |
+| `bun run benchmark:puzzle` | Puzzle algorithm benchmark |
+| `bun run benchmark:tictactoe` | Tic-tac-toe benchmark |
 
 ## Project Structure
 
 ```
 src/
-├── app/              # Next.js App Router pages
-├── modules/
-│   ├── puzzle/       # N-puzzle search algorithms & UI
-│   └── tictactoe/    # Game-tree AI algorithms & UI
-├── shared/           # Shared components, types, utils
-└── styles/           # Global CSS (Tailwind v4)
+├── pages/              # Home, Puzzle, TicTacToe (UI + state)
+├── shared/             # Layout, MetricCard, constants, metrics
+└── modules/
+    ├── puzzle/         # types, board, solvers, image
+    └── tictactoe/      # types, game, ai, autoplay
 
-tests/                # Vitest unit tests (todo stubs)
-scripts/              # CLI benchmark scripts
-docs/                 # Analysis templates & deliverables
-public/               # Static assets
+tests/                  # Vitest (puzzle.test.ts, tictactoe.test.ts)
+scripts/                # CLI benchmarks
+docs/                   # Comparative analysis + screenshots
+public/                 # Static assets
 ```
 
 ## Tech Stack
 
-- Next.js 16 (App Router, Turbopack)
-- React 19
+- React 19 + Vite 6
 - TypeScript
 - Tailwind CSS v4
-- Lucide React
-- Framer Motion
-- react-dropzone
+- React Router
+- Lucide React, Framer Motion, react-dropzone
 - Vitest
 
 ## Documentation
 
-- [`docs/comparative-analysis.md`](docs/comparative-analysis.md) — analysis template
-- [`docs/final-report.pdf`](docs/final-report.pdf) — replace with final report
-- [`docs/screenshots/`](docs/screenshots/) — dashboard and results screenshots
+- [Assignment.md](Assignment.md) — requirements checklist
+- [ROADMAP.md](ROADMAP.md) — implementation tasks
+- [docs/comparative-analysis.md](docs/comparative-analysis.md) — report template

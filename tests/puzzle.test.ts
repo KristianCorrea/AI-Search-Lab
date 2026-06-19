@@ -12,7 +12,7 @@ import {
 } from "@/modules/puzzle/board";
 
 import { PriorityQueue } from "@/modules/puzzle/PriorityQueue";
-import { manhattanDistance } from "@/modules/puzzle/solvers";
+import { manhattanDistance, misplacedTiles } from "@/modules/puzzle/solvers";
 
 describe("manhattanDistance", () => {
   it("returns 0 for a solved board", () => {
@@ -33,6 +33,26 @@ describe("manhattanDistance", () => {
     const state = stateFromTiles(3, [1, 2, 3, 4, 0, 6, 7, 8, 5]);
     // Only tile 5 is misplaced (distance 2); blank at center is skipped.
     expect(manhattanDistance(state)).toBe(2);
+  });
+});
+
+describe("misplacedTiles", () => {
+  it("returns 0 for a solved board", () => {
+    expect(misplacedTiles(createSolvedState(3))).toBe(0);
+  });
+
+  it("returns the known count for the standardized test puzzle", () => {
+    expect(misplacedTiles(stateFromTiles(3, [...TEST_PUZZLE]))).toBe(5);
+  });
+
+  it("counts a single misplaced tile", () => {
+    const state = stateFromTiles(3, [1, 2, 3, 4, 5, 6, 7, 0, 8]);
+    expect(misplacedTiles(state)).toBe(1);
+  });
+
+  it("does not count the blank tile", () => {
+    const state = stateFromTiles(3, [1, 2, 3, 4, 0, 6, 7, 8, 5]);
+    expect(misplacedTiles(state)).toBe(1);
   });
 });
 

@@ -11,6 +11,56 @@ import {
   statesEqual,
 } from "@/modules/puzzle/board";
 
+import { PriorityQueue } from "@/modules/puzzle/PriorityQueue";
+
+describe("PriorityQueue", () => {
+  it("starts empty", () => {
+    const queue = new PriorityQueue<string>();
+    expect(queue.isEmpty()).toBe(true);
+    expect(queue.size).toBe(0);
+    expect(queue.peek()).toBeUndefined();
+    expect(queue.dequeue()).toBeUndefined();
+  });
+
+  it("dequeues items in ascending priority order", () => {
+    const queue = new PriorityQueue<string>();
+    queue.enqueue("low", 3);
+    queue.enqueue("high", 1);
+    queue.enqueue("mid", 2);
+
+    expect(queue.dequeue()).toBe("high");
+    expect(queue.dequeue()).toBe("mid");
+    expect(queue.dequeue()).toBe("low");
+    expect(queue.dequeue()).toBeUndefined();
+  });
+
+  it("peek returns the next item without removing it", () => {
+    const queue = new PriorityQueue<number>();
+    queue.enqueue(10, 5);
+    queue.enqueue(20, 1);
+
+    expect(queue.peek()).toBe(20);
+    expect(queue.size).toBe(2);
+    expect(queue.dequeue()).toBe(20);
+    expect(queue.peek()).toBe(10);
+  });
+
+  it("tracks size as items are enqueued and dequeued", () => {
+    const queue = new PriorityQueue<string>();
+    queue.enqueue("a", 1);
+    queue.enqueue("b", 2);
+    expect(queue.size).toBe(2);
+
+    queue.dequeue();
+    expect(queue.size).toBe(1);
+    expect(queue.isEmpty()).toBe(false);
+
+    queue.dequeue();
+    expect(queue.size).toBe(0);
+    expect(queue.isEmpty()).toBe(true);
+  });
+});
+
 describe("puzzle solvers", () => {
   it.todo("BFS finds optimal solution for the standardized 14-move puzzle");
   it.todo("Dijkstra returns minimum-cost path with uniform move weights");

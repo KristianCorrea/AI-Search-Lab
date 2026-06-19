@@ -8,5 +8,4 @@ describe("puzzle solvers", () => {
 
 describe("puzzle board", () => {
   it.todo("manhattanDistance returns 0 for solved state");
-  it.todo("isSolvable returns true for solvable configurations");
 });

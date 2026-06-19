@@ -16,10 +16,6 @@ export async function sliceImage(_file: File, _gridSize: number): Promise<SliceR
   throw new Error("Not implemented");
 }
 
-export function shufflePuzzle(_state: PuzzleState, _moves: number): PuzzleState {
-  throw new Error("Not implemented");
-}
-
 export function generatePuzzle(_config: PuzzleConfig): PuzzleState {
   throw new Error("Not implemented");
 }

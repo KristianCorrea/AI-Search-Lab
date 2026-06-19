@@ -98,7 +98,7 @@ export default function Puzzle() {
 
   const shuffle = useCallback(() => {
     setLastResult(null);
-    // TODO: wire up shufflePuzzle from image.ts
+    // TODO: wire up shufflePuzzle from board.ts
   }, []);
 
   const solve = useCallback(() => {

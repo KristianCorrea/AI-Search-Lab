@@ -72,7 +72,7 @@ Interactive features:
 
 - [ ] **Image upload** (.jpg + .png), auto resize/crop to square, slice into 3×3 → `src/modules/puzzle/image.ts`
 - [ ] **Default numbered puzzle** (1–8 + blank), playable without an image → `board.ts` (`createSolvedState`)
-- [ ] **Shuffle** into a *solvable* state → `image.ts` (`shufflePuzzle`)
+- [ ] **Shuffle** into a solvable state (random legal moves from solved) → `board.ts` (`shufflePuzzle`)
 - [ ] **Manual play** — click/drag tiles → `src/pages/Puzzle.tsx`
 - [ ] **Step-by-step solve** — watch the optimal solution unfold one move at a time → `Puzzle.tsx`
 

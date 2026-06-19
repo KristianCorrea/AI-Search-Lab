@@ -54,8 +54,8 @@ function returns the right shape, the UI is guaranteed to accept it.
 - **Steps:**
   1. Implement `getNeighbors(state)`: find `blankIndex`, compute valid up/down/left/right swaps, return new `PuzzleState` for each legal swap.
   2. Implement `applyMove(state, move)`: swap tiles, return new state with updated `blankIndex`. Do NOT mutate the input.
-  3. Implement `isSolvable(state)`: inversion count; for 3×3, solvable iff inversions are even.
-- **Done when:** `getNeighbors` on solved board returns 2 neighbors (corner blank); test puzzle is solvable.
+  3. Implement `shufflePuzzle(state, moves)`: apply random legal moves from input state (typically solved).
+- **Done when:** `getNeighbors` on solved board returns 2 neighbors (corner blank); shuffle from solved always scrambles the board.
 
 ### 1.2 Priority queue + heuristics
 
@@ -167,7 +167,7 @@ function returns the right shape, the UI is guaranteed to accept it.
 
 ### 6.2 Shuffle
 
-- **File:** `src/modules/puzzle/image.ts` + `Puzzle.tsx`
+- **File:** `src/modules/puzzle/board.ts` + `Puzzle.tsx`
 - **Steps:** implement `shufflePuzzle`, wire `shuffle()` handler.
 - **Done when:** always produces a solvable scrambled board.
 

@@ -37,8 +37,17 @@ export function manhattanDistance(state: PuzzleState): number {
  * @param state - The puzzle state to calculate the number of misplaced tiles for.
  * @returns The number of misplaced tiles.
  */
-export function misplacedTiles(_state: PuzzleState): number {
-  throw new Error("Not implemented");
+export function misplacedTiles(state: PuzzleState): number {
+  const { tiles } = state;
+  let count = 0;
+
+  for (let i = 0; i < tiles.length; i++) {
+    const tile = tiles[i];
+    if (tile === 0) continue;
+    if (i !== tile - 1) count++;
+  }
+
+  return count;
 }
 
 // --- Solvers ---

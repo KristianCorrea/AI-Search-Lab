@@ -12,6 +12,29 @@ import {
 } from "@/modules/puzzle/board";
 
 import { PriorityQueue } from "@/modules/puzzle/PriorityQueue";
+import { manhattanDistance } from "@/modules/puzzle/solvers";
+
+describe("manhattanDistance", () => {
+  it("returns 0 for a solved board", () => {
+    expect(manhattanDistance(createSolvedState(3))).toBe(0);
+  });
+
+  it("returns the known distance for the standardized test puzzle", () => {
+    expect(manhattanDistance(stateFromTiles(3, [...TEST_PUZZLE]))).toBe(10);
+  });
+
+  it("counts distance for a single misplaced tile", () => {
+    // One slide from solved: only tile 8 is one step from goal.
+    const state = stateFromTiles(3, [1, 2, 3, 4, 5, 6, 7, 0, 8]);
+    expect(manhattanDistance(state)).toBe(1);
+  });
+
+  it("does not add distance for the blank tile", () => {
+    const state = stateFromTiles(3, [1, 2, 3, 4, 0, 6, 7, 8, 5]);
+    // Only tile 5 is misplaced (distance 2); blank at center is skipped.
+    expect(manhattanDistance(state)).toBe(2);
+  });
+});
 
 describe("PriorityQueue", () => {
   it("starts empty", () => {

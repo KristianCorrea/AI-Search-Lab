@@ -52,8 +52,26 @@ export function deserializeState(serialized: string): PuzzleState {
  * @param state - The puzzle state to get the neighbors of.
  * @returns An array of puzzle states that are the neighbors of the input state.
  */
-export function getNeighbors(_state: PuzzleState): PuzzleState[] {
-  throw new Error("Not implemented");
+export function getNeighbors(state: PuzzleState): PuzzleState[] {
+  const { size, tiles, blankIndex } = state;
+  const row = Math.floor(blankIndex / size); // row of the blank
+  const col = blankIndex % size; // column of the blank
+  const neighbors: PuzzleState[] = [];
+
+  // Helper function to add a neighbor to the list.
+  const addNeighbor = (tileIndex: number) => {
+    const nextTiles = [...tiles];
+    nextTiles[blankIndex] = nextTiles[tileIndex];
+    nextTiles[tileIndex] = 0;
+    neighbors.push({ size, tiles: nextTiles, blankIndex: tileIndex });
+  };
+
+  if (row > 0) addNeighbor(blankIndex - size);           // swap with the tile above
+  if (row < size - 1) addNeighbor(blankIndex + size);  // swap with the tile below
+  if (col > 0) addNeighbor(blankIndex - 1);            // swap with the tile left
+  if (col < size - 1) addNeighbor(blankIndex + 1);     // swap with the tile right
+
+  return neighbors;
 }
 
 /*
@@ -64,6 +82,12 @@ export function getNeighbors(_state: PuzzleState): PuzzleState[] {
  * @returns A new puzzle state with the move applied.
  */
 export function applyMove(_state: PuzzleState, _move: PuzzleMove): PuzzleState {
+  // Note for Broudy: Remove the underscore for _state and _move for the actual implementation. 
+  // _ is used to indicate that the parameter is not used. 
+  // So that it doesn't throw a warning from the TypeScript compiler.
+
+  // Once done you can test the implementation with the following command:
+  // bun run test:run -- tests/puzzle.test.ts -t applyMove
   throw new Error("Not implemented");
 }
 
@@ -75,6 +99,12 @@ export function applyMove(_state: PuzzleState, _move: PuzzleMove): PuzzleState {
  * @returns A new shuffled puzzle state.
  */
 export function shufflePuzzle(_state: PuzzleState, _moves: number): PuzzleState {
+  // Note for Broudy: Remove the underscore for _state and _moves for the actual implementation. 
+  // _ is used to indicate that the parameter is not used. 
+  // So that it doesn't throw a warning from the TypeScript compiler.
+
+  // Once done you can test the implementation with the following command:
+  // bun run test:run -- tests/puzzle.test.ts -t shufflePuzzle
   throw new Error("Not implemented");
 }
 

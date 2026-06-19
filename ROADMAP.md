@@ -17,7 +17,7 @@ src/
 ├── pages/          Home.tsx, Puzzle.tsx, TicTacToe.tsx
 ├── shared/         Layout.tsx, MetricCard.tsx, constants.ts, metrics.ts
 └── modules/
-    ├── puzzle/     types.ts, board.ts, solvers.ts, image.ts
+    ├── puzzle/     types.ts, board.ts, PriorityQueue.ts, solvers.ts, image.ts
     └── tictactoe/  types.ts, game.ts, ai.ts, autoplay.ts
 ```
 
@@ -60,6 +60,7 @@ function returns the right shape, the UI is guaranteed to accept it.
 ### 1.2 Priority queue + heuristics
 
 - **File:** `src/modules/puzzle/solvers.ts`
+- **File:** `src/modules/puzzle/PriorityQueue.ts`
 - **Steps:**
   1. Implement `PriorityQueue` min-heap: `enqueue`, `dequeue`, `peek`.
   2. `manhattanDistance(state)`: sum of tile distances to goal positions.

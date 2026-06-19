@@ -66,7 +66,7 @@ Algorithms (all three, independent solvers, each with a nodes-expanded counter):
 - [ ] **Blind search** — BFS *or* DFS (pick one) → `src/modules/puzzle/solvers.ts` (`solveBfs`)
 - [ ] **Dijkstra** — separate solver even though it equals BFS on unit costs → `solvers.ts` (`solveDijkstra`)
 - [ ] **A\*** — required; admissible heuristic (Manhattan recommended) → `solvers.ts` (`solveAstar`, `manhattanDistance`)
-- [ ] Supporting: `PriorityQueue` in `solvers.ts`, board logic in `board.ts`
+- [ ] Supporting: `PriorityQueue` in `PriorityQueue.ts`, board logic in `board.ts`
 
 Interactive features:
 

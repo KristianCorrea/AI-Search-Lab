@@ -66,7 +66,7 @@ export function getNeighbors(state: PuzzleState): PuzzleState[] {
     neighbors.push({ size, tiles: nextTiles, blankIndex: tileIndex });
   };
 
-  if (row > 0) addNeighbor(blankIndex - size);           // swap with the tile above
+  if (row > 0) addNeighbor(blankIndex - size);         // swap with the tile above
   if (row < size - 1) addNeighbor(blankIndex + size);  // swap with the tile below
   if (col > 0) addNeighbor(blankIndex - 1);            // swap with the tile left
   if (col < size - 1) addNeighbor(blankIndex + 1);     // swap with the tile right
@@ -81,15 +81,28 @@ export function getNeighbors(state: PuzzleState): PuzzleState[] {
  * @param move - The move to apply.
  * @returns A new puzzle state with the move applied.
  */
-export function applyMove(_state: PuzzleState, _move: PuzzleMove): PuzzleState {
-  // Note for Broudy: Remove the underscore for _state and _move for the actual implementation. 
-  // _ is used to indicate that the parameter is not used. 
-  // So that it doesn't throw a warning from the TypeScript compiler.
+export function applyMove(state: PuzzleState, move: PuzzleMove): PuzzleState {
 
-  // Once done you can test the implementation with the following command:
-  // bun run test:run -- tests/puzzle.test.ts -t applyMove
-  throw new Error("Not implemented");
+  // Create local copy to work with
+  const tiles = [...state.tiles];
+
+  // Swaps the positions
+  [tiles[move.fromIndex], tiles[move.toIndex]] = [tiles[move.toIndex], tiles[move.fromIndex]];
+
+  // Store and update blank index if involved in then swap
+  let blankIndex = state.blankIndex;
+  if (state.blankIndex === move.fromIndex) {
+
+    blankIndex = move.toIndex;
+  } else if (state.blankIndex === move.toIndex) {
+
+    blankIndex = move.fromIndex;
+  }
+
+  // Return new state size, tile positions, and where blank index is
+  return { size: state.size, tiles, blankIndex }
 }
+
 
 /*
  * Shuffles a puzzle by applying random legal moves from the input state.
@@ -98,14 +111,26 @@ export function applyMove(_state: PuzzleState, _move: PuzzleMove): PuzzleState {
  * @param moves - The number of random moves to apply.
  * @returns A new shuffled puzzle state.
  */
-export function shufflePuzzle(_state: PuzzleState, _moves: number): PuzzleState {
-  // Note for Broudy: Remove the underscore for _state and _moves for the actual implementation. 
-  // _ is used to indicate that the parameter is not used. 
-  // So that it doesn't throw a warning from the TypeScript compiler.
+export function shufflePuzzle(state: PuzzleState, moves: number): PuzzleState {
+  
+  // Create local copy to work with
+  let current = state;
+  
+  // Iterate for listed number of moves (skips if 0)
+  for (let i = 0; i < moves; i++) {
+    const neighbors = getNeighbors(current); // Gets list of neighbors
 
-  // Once done you can test the implementation with the following command:
-  // bun run test:run -- tests/puzzle.test.ts -t shufflePuzzle
-  throw new Error("Not implemented");
+    // If no valid neighbors then quit
+    if (neighbors.length === 0) {
+      break;
+    }
+
+    // Get a neighbor using a random index selection
+    const randomIndex = Math.floor(Math.random() * neighbors.length)
+    current = neighbors[randomIndex];
+  }
+
+  return current;
 }
 
 /*

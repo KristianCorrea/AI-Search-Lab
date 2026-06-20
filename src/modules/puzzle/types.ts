@@ -35,9 +35,14 @@ export interface SolverResult {
   finalState?: PuzzleState;
 }
 
+/** Function that returns an admissible estimate of remaining cost from a state to the goal. Used by A*. */
+export type Heuristic = (state: PuzzleState) => number;
+
 export interface SolverOptions {
   maxNodes?: number;
   timeoutMs?: number;
+  /** A* only. Defaults to `manhattanDistance` when omitted. */
+  heuristic?: Heuristic;
 }
 
 export type PuzzleSolver = (

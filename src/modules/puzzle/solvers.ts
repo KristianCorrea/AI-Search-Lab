@@ -76,9 +76,9 @@ export function solveDijkstra(_initial: PuzzleState, _options?: SolverOptions): 
 }
 
 /*
- * Solves the puzzle using A* algorithm. This is a best-first search algorithm.
+ * Solves the puzzle using A* algorithm. This is a best-first search algorithm. Uses a heuristic to guide the search.
  * @param initial - The initial puzzle state.
- * @param options - The solver options. (optional)
+ * @param options - The solver options. Pass `options.heuristic` to swap heuristics (e.g. manhattanDistance, misplacedTiles); defaults to manhattanDistance.
  * @returns The solver result.
  */
 export function solveAstar(_initial: PuzzleState, _options?: SolverOptions): SolverResult {

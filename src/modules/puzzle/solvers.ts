@@ -52,14 +52,32 @@ export function misplacedTiles(state: PuzzleState): number {
 
 // --- Solvers ---
 
+/*
+ * Solves the puzzle using Breadth-First Search. This is a blind search algorithm.
+ * @param initial - The initial puzzle state.
+ * @param options - The solver options. (optional)
+ * @returns The solver result.
+ */
 export function solveBfs(_initial: PuzzleState, _options?: SolverOptions): SolverResult {
   throw new Error("Not implemented");
 }
 
+/*
+ * Solves the puzzle using Dijkstra's algorithm. This is a uniform-cost search algorithm.
+ * @param initial - The initial puzzle state.
+ * @param options - The solver options. (optional)
+ * @returns The solver result.
+ */
 export function solveDijkstra(_initial: PuzzleState, _options?: SolverOptions): SolverResult {
   throw new Error("Not implemented");
 }
 
+/*
+ * Solves the puzzle using A* algorithm. This is a best-first search algorithm.
+ * @param initial - The initial puzzle state.
+ * @param options - The solver options. (optional)
+ * @returns The solver result.
+ */
 export function solveAstar(_initial: PuzzleState, _options?: SolverOptions): SolverResult {
   throw new Error("Not implemented");
 }

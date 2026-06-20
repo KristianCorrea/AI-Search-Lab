@@ -12,7 +12,7 @@ import {
 } from "@/modules/puzzle/board";
 
 import { PriorityQueue } from "@/modules/puzzle/PriorityQueue";
-import { manhattanDistance, misplacedTiles, solveAstar, solveDijkstra } from "@/modules/puzzle/solvers";
+import { manhattanDistance, misplacedTiles, solveBfs, solveAstar, solveDijkstra } from "@/modules/puzzle/solvers";
 
 describe("manhattanDistance", () => {
   it("returns 0 for a solved board", () => {
@@ -105,7 +105,23 @@ describe("PriorityQueue", () => {
 });
 
 describe("puzzle solvers", () => {
-  it.todo("BFS finds optimal solution for the standardized 14-move puzzle");
+  it("BFS finds optimal solution for the standardized 14-move puzzle", () => {
+    const initial = stateFromTiles(3, [...TEST_PUZZLE]);
+    const result = solveBfs(initial);
+
+    expect(result.algorithm).toBe("bfs");
+    expect(result.solved).toBe(true);
+    expect(result.moves).toHaveLength(14);
+    expect(result.nodesExpanded).toBeGreaterThan(1000);
+  });
+
+  it("BFS returns zero moves for an already solved board", () => {
+    const result = solveBfs(createSolvedState(3));
+
+    expect(result.solved).toBe(true);
+    expect(result.moves).toHaveLength(0);
+    expect(result.nodesExpanded).toBe(1);
+  });
 
   it("Dijkstra returns minimum-cost path with uniform move weights", () => {
     const initial = stateFromTiles(3, [...TEST_PUZZLE]);

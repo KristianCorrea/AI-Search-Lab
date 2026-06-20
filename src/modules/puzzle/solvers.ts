@@ -3,6 +3,7 @@ import { PriorityQueue } from "@/modules/puzzle/PriorityQueue";
 import { createTimer } from "@/shared/metrics";
 import type { Heuristic, PuzzleMove, PuzzleState, SolverOptions, SolverResult } from "@/modules/puzzle/types";
 import type { PuzzleAlgorithmId } from "@/shared/constants";
+import { option } from "framer-motion/client";
 
 // --- Helper functions ---
 
@@ -120,8 +121,71 @@ export function misplacedTiles(state: PuzzleState): number {
  * @param options - The solver options. (optional)
  * @returns The solver result.
  */
-export function solveBfs(_initial: PuzzleState, _options?: SolverOptions): SolverResult {
-  throw new Error("Not implemented");
+export function solveBfs(initial: PuzzleState, options?: SolverOptions): SolverResult {
+  const timer = createTimer();
+  timer.start();
+
+  const goal = createSolvedState(initial.size); // target layout for this puzzle size
+  const goalKey = serializeState(goal);
+  const startKey = serializeState(initial);
+
+  const frontier: PuzzleState[] = [initial];      // create Queue of puzzle states starting with initial state
+  const parent = new Map<string, ParentEntry>();  // Track the parents of nodes for path reconstruction
+  const visited = new Set<string>([startKey]);    // Track the nodes alreacy discovered
+
+  // Tracking how many states searched
+  let nodesExpanded = 0;
+  let maxFrontierSize = 1;
+
+  // While there are nodes to explore
+  while (frontier.length > 0) {
+
+    // If reach max nodes allowed to explore
+    if (options?.maxNodes !== undefined && nodesExpanded >= options.maxNodes) {
+      break; // cancel search
+    }
+
+    // Tracks the largest size seen for queue
+    maxFrontierSize = Math.max(maxFrontierSize, frontier.length);
+
+    // Get state from the front of the queue
+    const current = frontier.shift()!;
+    const currentKey = serializeState(current);
+
+    nodesExpanded++;
+
+    // If the current state is the goal state, return that state
+    if (currentKey === goalKey) {
+      return {
+          algorithm: "bfs",
+          solved: true,
+          moves: reconstructPath(parent, startKey, goalKey),
+          nodesExpanded,
+          maxFrontierSize,
+          elapsedMs: timer.stop().elapsedMs,
+          finalState: current,
+      };
+    }
+
+    // For each neighbor state (i.e child node)
+    for (const { state: neighbor, move } of getNeighbors(current)) {
+      const neighborKey = serializeState(neighbor) // Get the state
+
+      // Skip states already discovered
+      if (visited.has(neighborKey)) {
+        continue;
+      }
+
+      
+      visited.add(neighborKey);                           // Add state to discovered list
+      parent.set(neighborKey, { state: current, move });  // Set its parent as current with specific move
+
+      frontier.push(neighbor); // Add to Queue
+    }
+  }
+
+  // If no state matching goal was found
+  return buildFailureResult("bfs", nodesExpanded, maxFrontierSize, timer.stop().elapsedMs);
 }
 
 /*

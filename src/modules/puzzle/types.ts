@@ -14,6 +14,11 @@ export interface PuzzleMove {
   direction: "up" | "down" | "left" | "right";
 }
 
+export interface NeighborResult {
+  state: PuzzleState;
+  move: PuzzleMove;
+}
+
 export interface PuzzleConfig {
   size: number;
   imageUrl?: string;

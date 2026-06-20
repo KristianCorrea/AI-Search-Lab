@@ -191,6 +191,14 @@ describe("getNeighbors", () => {
     getNeighbors(state);
     expect(state.tiles).toEqual(before);
   });
+
+  it("returns moves that produce the neighbor state via applyMove", () => {
+    const solved = createSolvedState(3);
+    for (const { state, move } of getNeighbors(solved)) {
+      expect(applyMove(solved, move)).toEqual(state);
+      expect(move.toIndex).toBe(solved.blankIndex);
+    }
+  });
 });
 
 describe("shufflePuzzle", () => {

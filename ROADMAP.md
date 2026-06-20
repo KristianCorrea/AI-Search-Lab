@@ -52,7 +52,7 @@ function returns the right shape, the UI is guaranteed to accept it.
 - **File:** `src/modules/puzzle/board.ts`
 - **Already done:** `createSolvedState`, `statesEqual`, `serializeState`, `deserializeState`, `stateFromTiles`.
 - **Steps:**
-  1. Implement `getNeighbors(state)`: find `blankIndex`, compute valid up/down/left/right swaps, return new `PuzzleState` for each legal swap.
+  1. Implement `getNeighbors(state)`: return `{ move, state }[]` for each legal blank swap (uses `applyMove`).
   2. Implement `applyMove(state, move)`: swap tiles, return new state with updated `blankIndex`. Do NOT mutate the input.
   3. Implement `shufflePuzzle(state, moves)`: apply random legal moves from input state (typically solved).
 - **Done when:** `getNeighbors` on solved board returns 2 neighbors (corner blank); shuffle from solved always scrambles the board.

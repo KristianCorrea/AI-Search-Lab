@@ -1,4 +1,4 @@
-import type { PuzzleMove, PuzzleState } from "@/modules/puzzle/types";
+import type { NeighborResult, PuzzleMove, PuzzleState } from "@/modules/puzzle/types";
 
 /*
  * Creates a solved puzzle state. This is used to initialize the puzzle.
@@ -46,35 +46,6 @@ export function deserializeState(serialized: string): PuzzleState {
 }
 
 /*
- * Gets the neighbors of a puzzle state. 
- * This will return all the possible states that can be reached from the input state by swapping a tile with the blank.
- * In other words, this is the successor function for state-space search, to explore the puzzle space.
- * @param state - The puzzle state to get the neighbors of.
- * @returns An array of puzzle states that are the neighbors of the input state.
- */
-export function getNeighbors(state: PuzzleState): PuzzleState[] {
-  const { size, tiles, blankIndex } = state;
-  const row = Math.floor(blankIndex / size); // row of the blank
-  const col = blankIndex % size; // column of the blank
-  const neighbors: PuzzleState[] = [];
-
-  // Helper function to add a neighbor to the list.
-  const addNeighbor = (tileIndex: number) => {
-    const nextTiles = [...tiles];
-    nextTiles[blankIndex] = nextTiles[tileIndex];
-    nextTiles[tileIndex] = 0;
-    neighbors.push({ size, tiles: nextTiles, blankIndex: tileIndex });
-  };
-
-  if (row > 0) addNeighbor(blankIndex - size);         // swap with the tile above
-  if (row < size - 1) addNeighbor(blankIndex + size);  // swap with the tile below
-  if (col > 0) addNeighbor(blankIndex - 1);            // swap with the tile left
-  if (col < size - 1) addNeighbor(blankIndex + 1);     // swap with the tile right
-
-  return neighbors;
-}
-
-/*
  * Applies a move to a puzzle state.
  * This will return a new puzzle state with the tile at the fromIndex swapped with the tile at the toIndex.
  * @param state - The puzzle state to apply the move to.
@@ -92,10 +63,8 @@ export function applyMove(state: PuzzleState, move: PuzzleMove): PuzzleState {
   // Store and update blank index if involved in then swap
   let blankIndex = state.blankIndex;
   if (state.blankIndex === move.fromIndex) {
-
     blankIndex = move.toIndex;
   } else if (state.blankIndex === move.toIndex) {
-
     blankIndex = move.fromIndex;
   }
 
@@ -103,6 +72,30 @@ export function applyMove(state: PuzzleState, move: PuzzleMove): PuzzleState {
   return { size: state.size, tiles, blankIndex }
 }
 
+/*
+ * Gets the neighbors of a puzzle state.
+ * Returns each legal blank swap as a move and the resulting state (for search + UI replay).
+ * @param state - The puzzle state to get the neighbors of.
+ * @returns An array of move/state pairs reachable in one legal move.
+ */
+export function getNeighbors(state: PuzzleState): NeighborResult[] {
+  const { size, blankIndex } = state;
+  const row = Math.floor(blankIndex / size); // Get the row of the blank index
+  const col = blankIndex % size; // Get the column of the blank index
+  const neighbors: NeighborResult[] = []; // Initialize empty array for neighbors
+
+  const addNeighbor = (tileIndex: number, direction: PuzzleMove["direction"]) => {
+    const move: PuzzleMove = { fromIndex: tileIndex, toIndex: blankIndex, direction };
+    neighbors.push({ move, state: applyMove(state, move) });
+  };
+
+  if (row > 0) addNeighbor(blankIndex - size, "down"); // Add neighbor if not on top row
+  if (row < size - 1) addNeighbor(blankIndex + size, "up"); // Add neighbor if not on bottom row
+  if (col > 0) addNeighbor(blankIndex - 1, "right"); // Add neighbor if not on left column
+  if (col < size - 1) addNeighbor(blankIndex + 1, "left"); // Add neighbor if not on right column
+
+  return neighbors;
+}
 
 /*
  * Shuffles a puzzle by applying random legal moves from the input state.
@@ -126,8 +119,8 @@ export function shufflePuzzle(state: PuzzleState, moves: number): PuzzleState {
     }
 
     // Get a neighbor using a random index selection
-    const randomIndex = Math.floor(Math.random() * neighbors.length)
-    current = neighbors[randomIndex];
+    const randomIndex = Math.floor(Math.random() * neighbors.length);
+    current = neighbors[randomIndex].state;
   }
 
   return current;

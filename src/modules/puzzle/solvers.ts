@@ -1,5 +1,8 @@
+import { createSolvedState, getNeighbors, serializeState } from "@/modules/puzzle/board";
+import { PriorityQueue } from "@/modules/puzzle/PriorityQueue";
+import { createTimer } from "@/shared/metrics";
+import type { PuzzleMove, PuzzleState } from "@/modules/puzzle/types";
 import type { PuzzleAlgorithmId } from "@/shared/constants";
-import type { PuzzleState } from "@/modules/puzzle/types";
 import type { SolverOptions, SolverResult } from "@/modules/puzzle/types";
 
 // --- Heuristics ---

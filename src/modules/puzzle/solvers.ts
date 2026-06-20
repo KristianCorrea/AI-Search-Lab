@@ -3,6 +3,9 @@ import { PriorityQueue } from "@/modules/puzzle/PriorityQueue";
 import { createTimer } from "@/shared/metrics";
 import type { Heuristic, PuzzleMove, PuzzleState, SolverOptions, SolverResult } from "@/modules/puzzle/types";
 import type { PuzzleAlgorithmId } from "@/shared/constants";
+
+// --- Helper functions ---
+
 /**
  * Interface for the parent entry of the states.
  * @param state - The state of the parent.
@@ -127,8 +130,75 @@ export function solveBfs(_initial: PuzzleState, _options?: SolverOptions): Solve
  * @param options - The solver options. (optional)
  * @returns The solver result.
  */
-export function solveDijkstra(_initial: PuzzleState, _options?: SolverOptions): SolverResult {
-  throw new Error("Not implemented");
+export function solveDijkstra(initial: PuzzleState, options?: SolverOptions): SolverResult {
+  const timer = createTimer();
+  timer.start();
+
+  const goal = createSolvedState(initial.size); // target layout for this puzzle size
+  const goalKey = serializeState(goal);
+  const startKey = serializeState(initial);
+
+  // Min-heap ordered by g (total moves so far); each edge costs 1
+  const frontier = new PriorityQueue<PuzzleState>();
+  frontier.enqueue(initial, 0);
+
+  const cost = new Map<string, number>([[startKey, 0]]); // best known g for each state key
+  const parent = new Map<string, ParentEntry>(); // back-pointers to rebuild the move list
+  const closed = new Set<string>(); // states already expanded (skip duplicate heap entries)
+
+  let nodesExpanded = 0;
+  let maxFrontierSize = 1;
+
+  while (!frontier.isEmpty()) {
+    if (options?.maxNodes !== undefined && nodesExpanded >= options.maxNodes) {
+      break;
+    }
+
+    maxFrontierSize = Math.max(maxFrontierSize, frontier.size);
+
+    const current = frontier.dequeue()!; // lowest g among open states
+    const currentKey = serializeState(current);
+
+    if (closed.has(currentKey)) {
+      continue; // stale duplicate from an earlier, costlier path
+    }
+
+    closed.add(currentKey);
+    nodesExpanded++;
+
+    if (currentKey === goalKey) {
+      return {
+        algorithm: "dijkstra",
+        solved: true,
+        moves: reconstructPath(parent, startKey, goalKey),
+        nodesExpanded,
+        maxFrontierSize,
+        elapsedMs: timer.stop().elapsedMs,
+        finalState: current,
+      };
+    }
+
+    const g = cost.get(currentKey)!; // moves taken to reach current
+
+    for (const { state: neighbor, move } of getNeighbors(current)) {
+      const neighborKey = serializeState(neighbor);
+
+      if (closed.has(neighborKey)) {
+        continue;
+      }
+
+      const newCost = g + 1; // uniform move weight
+      const best = cost.get(neighborKey);
+
+      if (best === undefined || newCost < best) {
+        cost.set(neighborKey, newCost);
+        parent.set(neighborKey, { state: current, move });
+        frontier.enqueue(neighbor, newCost); // priority = g only (no heuristic)
+      }
+    }
+  }
+
+  return buildFailureResult("dijkstra", nodesExpanded, maxFrontierSize, timer.stop().elapsedMs);
 }
 
 /*

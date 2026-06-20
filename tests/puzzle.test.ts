@@ -12,7 +12,7 @@ import {
 } from "@/modules/puzzle/board";
 
 import { PriorityQueue } from "@/modules/puzzle/PriorityQueue";
-import { manhattanDistance, misplacedTiles } from "@/modules/puzzle/solvers";
+import { manhattanDistance, misplacedTiles, solveAstar } from "@/modules/puzzle/solvers";
 
 describe("manhattanDistance", () => {
   it("returns 0 for a solved board", () => {
@@ -107,7 +107,33 @@ describe("PriorityQueue", () => {
 describe("puzzle solvers", () => {
   it.todo("BFS finds optimal solution for the standardized 14-move puzzle");
   it.todo("Dijkstra returns minimum-cost path with uniform move weights");
-  it.todo("A* finds optimal solution using Manhattan heuristic");
+
+  it("A* finds optimal solution using Manhattan heuristic", () => {
+    const initial = stateFromTiles(3, [...TEST_PUZZLE]);
+    const result = solveAstar(initial);
+
+    expect(result.algorithm).toBe("astar");
+    expect(result.solved).toBe(true);
+    expect(result.moves).toHaveLength(14);
+    expect(result.nodesExpanded).toBeLessThan(500);
+  });
+
+  it("A* accepts a custom heuristic via options", () => {
+    const initial = stateFromTiles(3, [...TEST_PUZZLE]);
+    const result = solveAstar(initial, { heuristic: misplacedTiles });
+
+    expect(result.solved).toBe(true);
+    expect(result.moves).toHaveLength(14);
+    expect(result.nodesExpanded).toBeGreaterThan(result.moves.length);
+  });
+
+  it("A* returns zero moves for an already solved board", () => {
+    const result = solveAstar(createSolvedState(3));
+
+    expect(result.solved).toBe(true);
+    expect(result.moves).toHaveLength(0);
+    expect(result.nodesExpanded).toBe(1);
+  });
 });
 
 describe("createSolvedState", () => {

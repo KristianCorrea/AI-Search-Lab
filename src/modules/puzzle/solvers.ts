@@ -3,7 +3,6 @@ import { PriorityQueue } from "@/modules/puzzle/PriorityQueue";
 import { createTimer } from "@/shared/metrics";
 import type { Heuristic, PuzzleMove, PuzzleState, SolverOptions, SolverResult } from "@/modules/puzzle/types";
 import type { PuzzleAlgorithmId } from "@/shared/constants";
-import { option } from "framer-motion/client";
 
 // --- Helper functions ---
 

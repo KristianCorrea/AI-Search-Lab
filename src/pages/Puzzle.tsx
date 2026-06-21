@@ -6,6 +6,7 @@ import { Layout } from "@/shared/Layout";
 import { MetricCard } from "@/shared/MetricCard";
 import { formatCount, formatMs } from "@/shared/metrics";
 import { PUZZLE_ALGORITHMS, type PuzzleAlgorithmId } from "@/shared/constants";
+import { sliceImage } from "@/modules/puzzle/image";
 import { createSolvedState, getNeighbors, shufflePuzzle } from "@/modules/puzzle/board";
 import { PUZZLE_SOLVERS } from "@/modules/puzzle/solvers";
 import type { PuzzleState, SolverResult } from "@/modules/puzzle/types";
@@ -97,7 +98,8 @@ export default function Puzzle() {
   const [algorithm, setAlgorithm] = useState<PuzzleAlgorithmId>("bfs");
   const [isSolving, setIsSolving] = useState(false);
   const [lastResult, setLastResult] = useState<SolverResult | null>(null);
-  const [tileImages] = useState<Record<number, string>>({});
+  const [tileImages, setTileImages] = useState<Record<number, string>>({});
+  const [imageError, setImageError] = useState<string | null>(null);
 
   const shuffle = useCallback(() => {
     setLastResult(null);
@@ -121,11 +123,37 @@ export default function Puzzle() {
     setState(createSolvedState(3));
     setLastResult(null);
     setIsSolving(false);
+    setTileImages({});
+    setImageError(null);
   }, []);
 
-  const handleImageDrop = useCallback((_files: File[]) => {
-    // TODO: wire up sliceImage from image.ts
-  }, []);
+  const handleImageDrop = useCallback(
+    async (files: File[]) => {
+      const file = files[0];
+      if (!file) return;
+
+      setImageError(null);
+
+      try {
+        const result = await sliceImage(file, state.size);
+        const map: Record<number, string> = {};
+
+        // Slice index matches solved-board cell; tile value at cell i is i + 1 (blank excluded).
+        for (const tile of result.tiles) {
+          const tileValue = tile.index + 1;
+          if (tileValue < state.size * state.size) {
+            map[tileValue] = tile.dataUrl;
+          }
+        }
+
+        setTileImages(map);
+        setLastResult(null);
+      } catch {
+        setImageError("Could not load or slice that image. Try another PNG or JPG.");
+      }
+    },
+    [state.size],
+  );
 
   const playTile = useCallback(
     (index: number) => {
@@ -182,6 +210,9 @@ export default function Puzzle() {
 
           <div className="space-y-6">
             <ImageUploader onDrop={handleImageDrop} disabled={isSolving} />
+            {imageError ? (
+              <p className="text-sm text-red-600 dark:text-red-400">{imageError}</p>
+            ) : null}
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Search Algorithm</label>

@@ -6,7 +6,7 @@ import { Layout } from "@/shared/Layout";
 import { MetricCard } from "@/shared/MetricCard";
 import { formatCount, formatMs } from "@/shared/metrics";
 import { PUZZLE_ALGORITHMS, type PuzzleAlgorithmId } from "@/shared/constants";
-import { createSolvedState } from "@/modules/puzzle/board";
+import { createSolvedState, shufflePuzzle } from "@/modules/puzzle/board";
 import { PUZZLE_SOLVERS } from "@/modules/puzzle/solvers";
 import type { PuzzleState, SolverResult } from "@/modules/puzzle/types";
 
@@ -98,7 +98,7 @@ export default function Puzzle() {
 
   const shuffle = useCallback(() => {
     setLastResult(null);
-    // TODO: wire up shufflePuzzle from board.ts
+    setState(shufflePuzzle(createSolvedState(3), 50));
   }, []);
 
   const solve = useCallback(() => {

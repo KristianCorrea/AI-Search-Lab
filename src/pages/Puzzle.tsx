@@ -6,7 +6,7 @@ import { Layout } from "@/shared/Layout";
 import { MetricCard } from "@/shared/MetricCard";
 import { formatCount, formatMs } from "@/shared/metrics";
 import { PUZZLE_ALGORITHMS, type PuzzleAlgorithmId } from "@/shared/constants";
-import { createSolvedState, shufflePuzzle } from "@/modules/puzzle/board";
+import { createSolvedState, getNeighbors, shufflePuzzle } from "@/modules/puzzle/board";
 import { PUZZLE_SOLVERS } from "@/modules/puzzle/solvers";
 import type { PuzzleState, SolverResult } from "@/modules/puzzle/types";
 
@@ -14,10 +14,12 @@ function PuzzleBoard({
   state,
   tileImages = {},
   onTileClick,
+  disabled,
 }: {
   state: PuzzleState;
   tileImages?: Record<number, string>;
   onTileClick?: (index: number) => void;
+  disabled?: boolean;
 }) {
   return (
     <div
@@ -39,8 +41,9 @@ function PuzzleBoard({
             key={index}
             type="button"
             layout
+            disabled={disabled}
             onClick={() => onTileClick?.(index)}
-            className="aspect-square overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 text-lg font-semibold shadow-sm dark:border-neutral-700 dark:bg-neutral-900"
+            className="aspect-square overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 text-lg font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -124,6 +127,19 @@ export default function Puzzle() {
     // TODO: wire up sliceImage from image.ts
   }, []);
 
+  const playTile = useCallback(
+    (index: number) => {
+      if (isSolving) return;
+
+      const neighbor = getNeighbors(state).find(({ move }) => move.fromIndex === index);
+      if (!neighbor) return;
+
+      setLastResult(null);
+      setState(neighbor.state);
+    },
+    [state, isSolving],
+  );
+
   return (
     <Layout>
       <div className="space-y-8">
@@ -136,7 +152,12 @@ export default function Puzzle() {
 
         <div className="grid gap-8 lg:grid-cols-2">
           <div className="space-y-6">
-            <PuzzleBoard state={state} tileImages={tileImages} />
+            <PuzzleBoard
+              state={state}
+              tileImages={tileImages}
+              onTileClick={playTile}
+              disabled={isSolving}
+            />
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"

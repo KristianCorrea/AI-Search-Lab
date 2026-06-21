@@ -1,15 +1,38 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion } from "framer-motion";
-import { Clock, GitBranch, ImagePlus, Play, RotateCcw, Route, Shuffle } from "lucide-react";
+import {
+  Clock,
+  GitBranch,
+  ImagePlus,
+  Pause,
+  Play,
+  RotateCcw,
+  Route,
+  Shuffle,
+  SkipBack,
+  SkipForward,
+} from "lucide-react";
 import { Layout } from "@/shared/Layout";
 import { MetricCard } from "@/shared/MetricCard";
 import { formatCount, formatMs } from "@/shared/metrics";
 import { PUZZLE_ALGORITHMS, type PuzzleAlgorithmId } from "@/shared/constants";
 import { sliceImage } from "@/modules/puzzle/image";
-import { createSolvedState, getNeighbors, shufflePuzzle } from "@/modules/puzzle/board";
+import { applyMove, createSolvedState, getNeighbors, shufflePuzzle } from "@/modules/puzzle/board";
 import { PUZZLE_SOLVERS } from "@/modules/puzzle/solvers";
-import type { PuzzleState, SolverResult } from "@/modules/puzzle/types";
+import type { PuzzleMove, PuzzleState, SolverResult } from "@/modules/puzzle/types";
+
+const REPLAY_DELAY_MS = 350;
+
+const layoutTransition = { type: "spring" as const, stiffness: 500, damping: 35 };
+
+function applyMovesFrom(start: PuzzleState, moves: PuzzleMove[], count: number): PuzzleState {
+  let current = start;
+  for (let i = 0; i < count; i++) {
+    current = applyMove(current, moves[i]!);
+  }
+  return current;
+}
 
 function PuzzleBoard({
   state,
@@ -33,20 +56,26 @@ function PuzzleBoard({
       {state.tiles.map((value, index) => {
         if (value === 0) {
           return (
-            <div key={index} className="aspect-square rounded-lg bg-neutral-100 dark:bg-neutral-800" />
+            <motion.div
+              key="blank"
+              layout
+              transition={layoutTransition}
+              className="aspect-square rounded-lg bg-neutral-100 dark:bg-neutral-800"
+            />
           );
         }
         const imageUrl = tileImages[value];
         return (
           <motion.button
-            key={index}
+            key={value}
             type="button"
             layout
+            transition={layoutTransition}
             disabled={disabled}
             onClick={() => onTileClick?.(index)}
             className="aspect-square overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 text-lg font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={disabled ? undefined : { scale: 1.02 }}
+            whileTap={disabled ? undefined : { scale: 0.98 }}
           >
             {imageUrl ? (
               <img src={imageUrl} alt={`Tile ${value}`} className="size-full object-cover" />
@@ -101,31 +130,79 @@ export default function Puzzle() {
   const [tileImages, setTileImages] = useState<Record<number, string>>({});
   const [imageError, setImageError] = useState<string | null>(null);
 
-  const shuffle = useCallback(() => {
-    setLastResult(null);
-    setState(shufflePuzzle(createSolvedState(3), 50));
+  const [replayMoves, setReplayMoves] = useState<PuzzleMove[] | null>(null);
+  const [replayStartState, setReplayStartState] = useState<PuzzleState | null>(null);
+  const [replayStep, setReplayStep] = useState(0);
+  const [isReplayPlaying, setIsReplayPlaying] = useState(false);
+
+  const clearReplay = useCallback(() => {
+    setReplayMoves(null);
+    setReplayStartState(null);
+    setReplayStep(0);
+    setIsReplayPlaying(false);
   }, []);
 
+  const replayInProgress = replayMoves !== null && replayStep < replayMoves.length;
+  const controlsLocked = isSolving || isReplayPlaying;
+
+  useEffect(() => {
+    if (!isReplayPlaying || !replayMoves || !replayStartState || replayStep >= replayMoves.length) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setReplayStep((step) => step + 1);
+      setState(applyMovesFrom(replayStartState, replayMoves, replayStep + 1));
+    }, REPLAY_DELAY_MS);
+
+    return () => window.clearTimeout(timeout);
+  }, [isReplayPlaying, replayMoves, replayStartState, replayStep]);
+
+  useEffect(() => {
+    if (replayMoves && replayStep >= replayMoves.length) {
+      setIsReplayPlaying(false);
+    }
+  }, [replayMoves, replayStep]);
+
+  const shuffle = useCallback(() => {
+    clearReplay();
+    setLastResult(null);
+    setState(shufflePuzzle(createSolvedState(3), 50));
+  }, [clearReplay]);
+
   const solve = useCallback(() => {
+    clearReplay();
     setIsSolving(true);
     setLastResult(null);
+
+    const startState = state;
+
     try {
-      const result = PUZZLE_SOLVERS[algorithm](state);
+      const result = PUZZLE_SOLVERS[algorithm](startState);
       setLastResult(result);
+
+      if (result.solved && result.moves.length > 0) {
+        setReplayMoves(result.moves);
+        setReplayStartState(startState);
+        setReplayStep(0);
+        setState(startState);
+        setIsReplayPlaying(true);
+      }
     } catch {
       // solver not implemented yet
     } finally {
       setIsSolving(false);
     }
-  }, [algorithm, state]);
+  }, [algorithm, state, clearReplay]);
 
   const reset = useCallback(() => {
+    clearReplay();
     setState(createSolvedState(3));
     setLastResult(null);
     setIsSolving(false);
     setTileImages({});
     setImageError(null);
-  }, []);
+  }, [clearReplay]);
 
   const handleImageDrop = useCallback(
     async (files: File[]) => {
@@ -133,12 +210,12 @@ export default function Puzzle() {
       if (!file) return;
 
       setImageError(null);
+      clearReplay();
 
       try {
         const result = await sliceImage(file, state.size);
         const map: Record<number, string> = {};
 
-        // Slice index matches solved-board cell; tile value at cell i is i + 1 (blank excluded).
         for (const tile of result.tiles) {
           const tileValue = tile.index + 1;
           if (tileValue < state.size * state.size) {
@@ -152,21 +229,55 @@ export default function Puzzle() {
         setImageError("Could not load or slice that image. Try another PNG or JPG.");
       }
     },
-    [state.size],
+    [state.size, clearReplay],
   );
 
   const playTile = useCallback(
     (index: number) => {
-      if (isSolving) return;
+      if (isSolving || replayInProgress || isReplayPlaying) return;
 
       const neighbor = getNeighbors(state).find(({ move }) => move.fromIndex === index);
       if (!neighbor) return;
 
+      clearReplay();
       setLastResult(null);
       setState(neighbor.state);
     },
-    [state, isSolving],
+    [state, isSolving, replayInProgress, isReplayPlaying, clearReplay],
   );
+
+  const playReplay = useCallback(() => {
+    if (!replayMoves || !replayStartState) return;
+
+    if (replayStep >= replayMoves.length) {
+      setReplayStep(0);
+      setState(replayStartState);
+    }
+
+    setIsReplayPlaying(true);
+  }, [replayMoves, replayStartState, replayStep]);
+
+  const pauseReplay = useCallback(() => {
+    setIsReplayPlaying(false);
+  }, []);
+
+  const stepReplayForward = useCallback(() => {
+    if (!replayMoves || !replayStartState || replayStep >= replayMoves.length) return;
+
+    setIsReplayPlaying(false);
+    const nextStep = replayStep + 1;
+    setReplayStep(nextStep);
+    setState(applyMovesFrom(replayStartState, replayMoves, nextStep));
+  }, [replayMoves, replayStartState, replayStep]);
+
+  const stepReplayBack = useCallback(() => {
+    if (!replayMoves || !replayStartState || replayStep <= 0) return;
+
+    setIsReplayPlaying(false);
+    const nextStep = replayStep - 1;
+    setReplayStep(nextStep);
+    setState(applyMovesFrom(replayStartState, replayMoves, nextStep));
+  }, [replayMoves, replayStartState, replayStep]);
 
   return (
     <Layout>
@@ -184,13 +295,13 @@ export default function Puzzle() {
               state={state}
               tileImages={tileImages}
               onTileClick={playTile}
-              disabled={isSolving}
+              disabled={isSolving || replayInProgress || isReplayPlaying}
             />
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={shuffle}
-                disabled={isSolving}
+                disabled={controlsLocked}
                 className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
               >
                 <Shuffle className="size-4" />
@@ -199,7 +310,7 @@ export default function Puzzle() {
               <button
                 type="button"
                 onClick={reset}
-                disabled={isSolving}
+                disabled={controlsLocked}
                 className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
               >
                 <RotateCcw className="size-4" />
@@ -209,7 +320,7 @@ export default function Puzzle() {
           </div>
 
           <div className="space-y-6">
-            <ImageUploader onDrop={handleImageDrop} disabled={isSolving} />
+            <ImageUploader onDrop={handleImageDrop} disabled={controlsLocked} />
             {imageError ? (
               <p className="text-sm text-red-600 dark:text-red-400">{imageError}</p>
             ) : null}
@@ -222,7 +333,8 @@ export default function Puzzle() {
                     key={option.id}
                     type="button"
                     onClick={() => setAlgorithm(option.id)}
-                    className={`rounded-xl border p-3 text-left transition-colors ${
+                    disabled={controlsLocked}
+                    className={`rounded-xl border p-3 text-left transition-colors disabled:opacity-50 ${
                       algorithm === option.id
                         ? "border-violet-500 bg-violet-50 dark:border-violet-400 dark:bg-violet-950/50"
                         : "border-neutral-200 bg-white hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900"
@@ -238,12 +350,61 @@ export default function Puzzle() {
             <button
               type="button"
               onClick={solve}
-              disabled={isSolving}
+              disabled={controlsLocked}
               className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
             >
               <Play className="size-4" />
               {isSolving ? "Solving…" : "Solve Puzzle"}
             </button>
+
+            {replayMoves && replayMoves.length > 0 ? (
+              <div className="space-y-2 rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-semibold">Solution replay</h2>
+                  <span className="text-xs text-neutral-500">
+                    Move {Math.min(replayStep, replayMoves.length)} / {replayMoves.length}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={playReplay}
+                    disabled={isReplayPlaying}
+                    className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                  >
+                    <Play className="size-4" />
+                    Play
+                  </button>
+                  <button
+                    type="button"
+                    onClick={pauseReplay}
+                    disabled={!isReplayPlaying}
+                    className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                  >
+                    <Pause className="size-4" />
+                    Pause
+                  </button>
+                  <button
+                    type="button"
+                    onClick={stepReplayBack}
+                    disabled={isReplayPlaying || replayStep <= 0}
+                    className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                  >
+                    <SkipBack className="size-4" />
+                    Step back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={stepReplayForward}
+                    disabled={isReplayPlaying || replayStep >= replayMoves.length}
+                    className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                  >
+                    <SkipForward className="size-4" />
+                    Step forward
+                  </button>
+                </div>
+              </div>
+            ) : null}
 
             <div className="space-y-3">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">Metrics</h2>

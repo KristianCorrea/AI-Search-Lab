@@ -10,8 +10,8 @@
     "lint": "eslint src",
     "test": "vitest",
     "test:run": "vitest run",
-    "benchmark:puzzle": "bun run scripts/benchmarkPuzzle.ts",
-    "benchmark:tictactoe": "bun run scripts/benchmarkTicTacToe.ts"
+    "benchmark:puzzle": "tsx --tsconfig tsconfig.app.json scripts/benchmarkPuzzle.ts",
+    "benchmark:tictactoe": "tsx --tsconfig tsconfig.app.json scripts/benchmarkTicTacToe.ts"
   },
   "dependencies": {
     "framer-motion": "^12.40.0",
@@ -27,6 +27,7 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^4.5.0",
     "tailwindcss": "^4.1.0",
+    "tsx": "^4.22.4",
     "typescript": "^5.9.0",
     "vite": "^6.3.0",
     "vitest": "^4.1.0"

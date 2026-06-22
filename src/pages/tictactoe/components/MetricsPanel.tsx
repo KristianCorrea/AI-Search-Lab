@@ -1,8 +1,23 @@
-import { Clock, GitBranch, Layers, Percent } from "lucide-react";
+import { Clock, GitBranch, Layers, Percent, Target } from "lucide-react";
 import { MetricCard } from "@/shared/MetricCard";
 import { formatCount, formatMs } from "@/shared/metrics";
 import type { TicTacToeAlgorithmId } from "@/shared/constants";
 import type { MoveResult } from "@/modules/tictactoe/types";
+
+/** Format minimax eval score (+10 win, -10 loss, 0 draw) for the dashboard. */
+function formatEvalScore(score: number): { value: string; description: string } {
+  const signed = score > 0 ? `+${score}` : `${score}`;
+
+  if (score > 0) {
+    return { value: signed, description: "AI-favorable outcome" };
+  }
+
+  if (score < 0) {
+    return { value: signed, description: "Opponent-favorable outcome" };
+  }
+
+  return { value: signed, description: "Draw or neutral position" };
+}
 
 export interface MetricsPanelProps {
   result: MoveResult | null;
@@ -27,9 +42,16 @@ export function MetricsPanel({ result, algorithm }: MetricsPanelProps) {
   }
 
   const showPruning = algorithm === "alpha-beta" && result.pruningRate !== undefined;
+  const evalScore = formatEvalScore(result.score);
 
   return (
-    <div className={`grid gap-3 ${showPruning ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
+    <div className="grid gap-3 sm:grid-cols-5">
+      <MetricCard
+        label="Eval Score"
+        value={evalScore.value}
+        description={evalScore.description}
+        icon={Target}
+      />
       <MetricCard label="Search Time" value={formatMs(result.elapsedMs ?? 0)} icon={Clock} />
       <MetricCard label="Nodes Visited" value={formatCount(result.nodesVisited)} icon={GitBranch} />
       <MetricCard label="Search Depth" value={formatCount(result.depth)} icon={Layers} />

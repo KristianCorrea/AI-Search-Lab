@@ -306,6 +306,7 @@ export function findBestMoveAlphaBeta(
   );
   const { elapsedMs } = timer.stop();
 
+  // Baseline for pruning rate — not included in elapsedMs.
   const minimaxNodes = countMinimaxNodes(board, player, options?.maxDepth);
   const nodesPruned = Math.max(0, minimaxNodes - stats.nodesVisited);
   const pruningRate = minimaxNodes > 0 ? nodesPruned / minimaxNodes : 0;

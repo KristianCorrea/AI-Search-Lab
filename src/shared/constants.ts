@@ -1,3 +1,5 @@
+import { Board } from "@/modules/tictactoe/types";
+
 export const ROUTES = {
   home: "/",
   puzzle: "/puzzle",
@@ -50,3 +52,6 @@ export const GOAL_PUZZLE = [1, 2, 3, 4, 5, 6, 7, 8, 0] as const;
 
 /** Standardized Module B test position (empty board). */
 export const EMPTY_BOARD: (null | "X" | "O")[] = Array(9).fill(null);
+export const X_WIN_BOARD = ["X", "X", "X", "O", "O", null, null, null, null] as Board;
+export const O_WIN_BOARD = ["O", "X", "X", "X", "O", null, null, null, "O"] as Board;
+export const DRAW_BOARD = ["X", "O", "X", "O", "O", "X", "X", "X", "O"] as Board;

@@ -45,6 +45,10 @@ function PuzzleBoard({
   onTileClick?: (index: number) => void;
   disabled?: boolean;
 }) {
+  const movableIndices = new Set(
+    disabled ? [] : getNeighbors(state).map(({ move }) => move.fromIndex),
+  );
+
   return (
     <div
       className="grid gap-2 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
@@ -65,17 +69,26 @@ function PuzzleBoard({
           );
         }
         const imageUrl = tileImages[value];
+        const isMovable = movableIndices.has(index);
         return (
           <motion.button
             key={value}
             type="button"
             layout
             transition={layoutTransition}
-            disabled={disabled}
+            disabled={disabled || !isMovable}
             onClick={() => onTileClick?.(index)}
-            className="aspect-square overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 text-lg font-semibold shadow-sm disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900"
-            whileHover={disabled ? undefined : { scale: 1.02 }}
-            whileTap={disabled ? undefined : { scale: 0.98 }}
+            title={isMovable && !disabled ? "Slide this tile into the empty space" : undefined}
+            className={[
+              "aspect-square overflow-hidden rounded-lg border text-lg font-semibold shadow-sm transition-colors",
+              disabled
+                ? "cursor-not-allowed border-neutral-200 bg-neutral-50 opacity-50 dark:border-neutral-700 dark:bg-neutral-900"
+                : isMovable
+                ? "cursor-pointer border-violet-300 bg-neutral-50 ring-2 ring-violet-400/60 ring-offset-1 hover:border-violet-400 hover:shadow-md dark:border-violet-600 dark:bg-neutral-900 dark:ring-violet-500/50"
+                : "cursor-default border-neutral-200 bg-neutral-50 opacity-75 dark:border-neutral-700 dark:bg-neutral-900",
+            ].join(" ")}
+            whileHover={disabled || !isMovable ? undefined : { scale: 1.02 }}
+            whileTap={disabled || !isMovable ? undefined : { scale: 0.98 }}
           >
             {imageUrl ? (
               <img src={imageUrl} alt={`Tile ${value}`} className="size-full object-cover" />
@@ -144,6 +157,7 @@ export default function Puzzle() {
 
   const replayInProgress = replayMoves !== null && replayStep < replayMoves.length;
   const controlsLocked = isSolving || isReplayPlaying;
+  const manualPlayEnabled = !isSolving && !replayInProgress && !isReplayPlaying;
 
   useEffect(() => {
     if (!isReplayPlaying || !replayMoves || !replayStartState || replayStep >= replayMoves.length) {
@@ -295,14 +309,19 @@ export default function Puzzle() {
               state={state}
               tileImages={tileImages}
               onTileClick={playTile}
-              disabled={isSolving || replayInProgress || isReplayPlaying}
+              disabled={!manualPlayEnabled}
             />
+            {manualPlayEnabled ? (
+              <p className="text-xs text-neutral-500">
+                Click a highlighted tile next to the empty space to slide it.
+              </p>
+            ) : null}
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={shuffle}
                 disabled={controlsLocked}
-                className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Shuffle className="size-4" />
                 Shuffle
@@ -311,7 +330,7 @@ export default function Puzzle() {
                 type="button"
                 onClick={reset}
                 disabled={controlsLocked}
-                className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
               >
                 <RotateCcw className="size-4" />
                 Reset
@@ -334,7 +353,7 @@ export default function Puzzle() {
                     type="button"
                     onClick={() => setAlgorithm(option.id)}
                     disabled={controlsLocked}
-                    className={`rounded-xl border p-3 text-left transition-colors disabled:opacity-50 ${
+                    className={`cursor-pointer rounded-xl border p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                       algorithm === option.id
                         ? "border-violet-500 bg-violet-50 dark:border-violet-400 dark:bg-violet-950/50"
                         : "border-neutral-200 bg-white hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900"
@@ -351,7 +370,7 @@ export default function Puzzle() {
               type="button"
               onClick={solve}
               disabled={controlsLocked}
-              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+              className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Play className="size-4" />
               {isSolving ? "Solving…" : "Solve Puzzle"}
@@ -370,7 +389,7 @@ export default function Puzzle() {
                     type="button"
                     onClick={playReplay}
                     disabled={isReplayPlaying}
-                    className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
                   >
                     <Play className="size-4" />
                     Play
@@ -379,7 +398,7 @@ export default function Puzzle() {
                     type="button"
                     onClick={pauseReplay}
                     disabled={!isReplayPlaying}
-                    className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
                   >
                     <Pause className="size-4" />
                     Pause
@@ -388,7 +407,7 @@ export default function Puzzle() {
                     type="button"
                     onClick={stepReplayBack}
                     disabled={isReplayPlaying || replayStep <= 0}
-                    className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
                   >
                     <SkipBack className="size-4" />
                     Step back
@@ -397,7 +416,7 @@ export default function Puzzle() {
                     type="button"
                     onClick={stepReplayForward}
                     disabled={isReplayPlaying || replayStep >= replayMoves.length}
-                    className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
                   >
                     <SkipForward className="size-4" />
                     Step forward

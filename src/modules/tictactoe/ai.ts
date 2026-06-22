@@ -304,12 +304,13 @@ export function findBestMoveAlphaBeta(
         options?.maxDepth,
       ),
   );
+  const { elapsedMs } = timer.stop();
 
   const minimaxNodes = countMinimaxNodes(board, player, options?.maxDepth);
   const nodesPruned = Math.max(0, minimaxNodes - stats.nodesVisited);
   const pruningRate = minimaxNodes > 0 ? nodesPruned / minimaxNodes : 0;
 
-  const { elapsedMs } = timer.stop();
+  
 
   return {
     move,

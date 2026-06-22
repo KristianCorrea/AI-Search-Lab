@@ -4,6 +4,7 @@ import { BoardGrid } from "@/pages/tictactoe/components/BoardGrid";
 import { AiVsAiSettings, HumanVsAiSettings } from "@/pages/tictactoe/components/GameSettings";
 import { GameOutcomeBanner } from "@/pages/tictactoe/components/GameOutcomeBanner";
 import { HistoryBrowseBanner } from "@/pages/tictactoe/components/HistoryBrowseBanner";
+import { TurnStatusBanner } from "@/pages/tictactoe/components/TurnStatusBanner";
 import { MetricsPanel } from "@/pages/tictactoe/components/MetricsPanel";
 import { ModeTabs } from "@/pages/tictactoe/components/ModeTabs";
 import { MoveLogPanel } from "@/pages/tictactoe/components/MoveLogPanel";
@@ -49,6 +50,14 @@ export default function TicTacToe() {
               />
             )}
 
+            {game.showTurnBanner ? (
+              <TurnStatusBanner
+                isPlayerTurn={game.boardClickable}
+                humanPlayer={game.humanPlayer}
+                isAiThinking={game.isAiThinking}
+              />
+            ) : null}
+
             <BoardGrid
               board={game.displayBoard}
               winningLine={game.displayWinningLine}
@@ -56,6 +65,12 @@ export default function TicTacToe() {
               disabled={!game.boardClickable}
               onCellClick={game.boardClickable ? game.handleHumanMove : undefined}
             />
+
+            {game.boardClickable ? (
+              <p className="text-xs text-neutral-500">
+                Tap an empty highlighted square to make your move.
+              </p>
+            ) : null}
 
             {/* Status + New Game row */}
             <div className="flex flex-wrap items-center justify-between gap-3">

@@ -259,6 +259,9 @@ export function useTicTacToeGame() {
     liveGame.status === "playing" &&
     liveGame.currentPlayer === humanPlayer;
 
+  const showTurnBanner =
+    mode === "human-ai" && isLiveView && liveGame.status === "playing";
+
   return {
     mode,
     humanPlayer,
@@ -281,6 +284,7 @@ export function useTicTacToeGame() {
     statusLabel,
     outcomeText,
     boardClickable,
+    showTurnBanner,
     setAiAlgorithm,
     setAlgorithmX,
     setAlgorithmO,

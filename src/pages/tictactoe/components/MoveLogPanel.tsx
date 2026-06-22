@@ -39,7 +39,7 @@ export function MoveLogPanel({ history, viewStep, isLive, onStepSelect }: MoveLo
               onClick={() => onStepSelect(step)}
               title={`Jump to move ${step}`}
               className={[
-                "flex w-full items-center gap-2 border-l-2 px-3 py-1.5 text-xs transition-colors",
+                "flex w-full cursor-pointer items-center gap-2 border-l-2 px-3 py-1.5 text-xs transition-colors",
                 isSelected
                   ? "border-violet-500 bg-violet-50 dark:border-violet-400 dark:bg-violet-950/40"
                   : isLatestLive

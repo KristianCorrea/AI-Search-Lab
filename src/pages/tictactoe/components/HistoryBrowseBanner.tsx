@@ -14,7 +14,7 @@ export function HistoryBrowseBanner({
       <span>
         Viewing move {effectiveStep} of {totalMoves}
       </span>
-      <button type="button" onClick={onBackToLive} className="underline">
+      <button type="button" onClick={onBackToLive} className="cursor-pointer underline">
         Back to live
       </button>
     </div>

@@ -28,7 +28,7 @@ export function AlgoPicker({ label, value, onChange, disabled }: AlgoPickerProps
             disabled={disabled}
             onClick={() => onChange(opt.id)}
             className={[
-              "rounded-lg border px-2 py-1.5 text-left text-xs font-medium transition-colors disabled:opacity-40",
+              "cursor-pointer rounded-lg border px-2 py-1.5 text-left text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40",
               value === opt.id
                 ? "border-violet-500 bg-violet-50 text-violet-700 dark:border-violet-400 dark:bg-violet-950/50 dark:text-violet-300"
                 : "border-neutral-200 bg-white hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900",

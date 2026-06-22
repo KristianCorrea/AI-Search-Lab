@@ -43,7 +43,7 @@ export function BoardGrid({
             disabled={disabled || value !== null}
             onClick={() => onCellClick?.(i)}
             className={[
-              "flex aspect-square items-center justify-center rounded-xl border text-3xl font-bold transition-colors disabled:cursor-default",
+              "flex aspect-square cursor-pointer items-center justify-center rounded-xl border text-3xl font-bold transition-colors disabled:cursor-not-allowed",
               isWin
                 ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950"
                 : isLast

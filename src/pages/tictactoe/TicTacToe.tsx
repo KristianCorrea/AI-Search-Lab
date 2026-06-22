@@ -73,7 +73,7 @@ export default function TicTacToe() {
                 type="button"
                 onClick={() => game.doReset()}
                 disabled={game.isAiThinking}
-                className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
               >
                 <RotateCcw className="size-4" />
                 New Game
@@ -141,7 +141,7 @@ export default function TicTacToe() {
                   <button
                     type="button"
                     onClick={game.jumpToLive}
-                    className="text-xs text-violet-600 hover:underline dark:text-violet-400"
+                    className="cursor-pointer text-xs text-violet-600 hover:underline dark:text-violet-400"
                   >
                     ↩ Live
                   </button>

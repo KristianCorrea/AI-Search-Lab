@@ -33,7 +33,7 @@ export function HumanVsAiSettings({
               disabled={isAiThinking}
               onClick={() => onHumanPlayerChange(p)}
               className={[
-                "flex-1 rounded-xl border py-2 text-sm font-bold transition-colors disabled:opacity-40",
+                "flex-1 cursor-pointer rounded-xl border py-2 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-40",
                 humanPlayer === p
                   ? p === "X"
                     ? "border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-400 dark:bg-blue-950/40 dark:text-blue-300"
@@ -111,7 +111,7 @@ export function AiVsAiSettings({
         <button
           type="button"
           onClick={onStartGame}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700"
+          className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700"
         >
           <Play className="size-4" />
           Start Game

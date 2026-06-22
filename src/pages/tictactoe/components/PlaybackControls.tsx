@@ -30,7 +30,7 @@ export function PlaybackControls({
           title="Jump to start"
           onClick={onJumpToStart}
           disabled={viewStep === 0}
-          className="inline-flex items-center justify-center rounded-lg border border-neutral-200 p-1.5 hover:bg-neutral-50 disabled:opacity-40 dark:border-neutral-700"
+          className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-neutral-200 p-1.5 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700"
         >
           <SkipBack className="size-4" />
         </button>
@@ -39,14 +39,14 @@ export function PlaybackControls({
           title="Step back"
           onClick={onStepBack}
           disabled={(viewStep ?? 0) <= 0}
-          className="rounded-lg border border-neutral-200 px-2.5 py-1.5 text-sm hover:bg-neutral-50 disabled:opacity-40 dark:border-neutral-700"
+          className="cursor-pointer rounded-lg border border-neutral-200 px-2.5 py-1.5 text-sm hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700"
         >
           ‹ Back
         </button>
         <button
           type="button"
           onClick={onTogglePlay}
-          className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium hover:bg-neutral-50 dark:border-neutral-700"
+          className="inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium hover:bg-neutral-50 dark:border-neutral-700"
         >
           {isAutoPlaying ? <Pause className="size-4" /> : <Play className="size-4" />}
           {isAutoPlaying ? "Pause" : "Play"}
@@ -56,7 +56,7 @@ export function PlaybackControls({
           title="Step forward"
           onClick={onStepForward}
           disabled={(viewStep ?? 0) >= moveCount}
-          className="rounded-lg border border-neutral-200 px-2.5 py-1.5 text-sm hover:bg-neutral-50 disabled:opacity-40 dark:border-neutral-700"
+          className="cursor-pointer rounded-lg border border-neutral-200 px-2.5 py-1.5 text-sm hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700"
         >
           Fwd ›
         </button>
@@ -65,7 +65,7 @@ export function PlaybackControls({
           title="Jump to end"
           onClick={onJumpToEnd}
           disabled={viewStep === moveCount}
-          className="inline-flex items-center justify-center rounded-lg border border-neutral-200 p-1.5 hover:bg-neutral-50 disabled:opacity-40 dark:border-neutral-700"
+          className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-neutral-200 p-1.5 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700"
         >
           <SkipForward className="size-4" />
         </button>

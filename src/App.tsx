@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import Home from "@/pages/Home";
 import Puzzle from "@/pages/Puzzle";
-import TicTacToe from "@/pages/TicTacToe";
+import TicTacToe from "@/pages/tictactoe/TicTacToe";
 
 export default function App() {
   return (

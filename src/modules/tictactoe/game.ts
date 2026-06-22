@@ -126,8 +126,28 @@ export class GameManager {
     return this.state;
   }
 
-  makeMove(_move: Move): GameState {
-    throw new Error("Not implemented");
+  /*
+   * Makes a move on the game board.
+   * @param move - The move to make.
+   * @returns The updated game state.
+   * @throws An error if the game is already over or the move is from the wrong player.
+   */
+  makeMove(move: Move): GameState {
+    if (this.state.status !== "playing") {
+      throw new Error("Game is already over");
+    }
+
+    if (move.player !== this.state.currentPlayer) {
+      throw new Error(`Expected ${this.state.currentPlayer} to move, got ${move.player}`);
+    }
+
+    const board = applyMove(this.state.board, move);
+    const status = getGameStatus(board);
+    const winner = status === "won" ? findWinner(board) : null; // If the game is won, find the winner. Otherwise, there is no winner.
+    const currentPlayer = status === "playing" ? switchPlayer(move.player) : move.player; // If the game is still playing, switch the player. Otherwise, the player is the same.
+
+    this.state = { board, status, winner, currentPlayer };
+    return this.state;
   }
 
   reset(): GameState {

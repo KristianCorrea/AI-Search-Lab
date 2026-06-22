@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EMPTY_BOARD, X_WIN_BOARD, O_WIN_BOARD, DRAW_BOARD } from "@/shared/constants";
+import type { Player } from "@/modules/tictactoe/types";
 import {
   createEmptyBoard,
   createInitialGameState,
@@ -10,6 +11,7 @@ import {
   getGameStatus,
   getWinningLine,
   getWinner,
+  GameManager,
 } from "@/modules/tictactoe/game";
 
 describe("minimax", () => {
@@ -55,5 +57,77 @@ describe("winner detection", () => {
   
   it("getGameStatus returns playing when board isn't full with no winner", () => {
     expect(getGameStatus(EMPTY_BOARD)).toBe("playing");
+  });
+});
+
+describe("GameManager", () => {
+  it("applies a valid move and switches turn", () => {
+    const game = new GameManager();
+
+    const afterX = game.makeMove({ index: 4, player: "X" });
+
+    expect(afterX.board[4]).toBe("X");
+    expect(afterX.currentPlayer).toBe("O");
+    expect(afterX.status).toBe("playing");
+    expect(afterX.winner).toBe(null);
+  });
+
+  it("rejects moves from the wrong player", () => {
+    const game = new GameManager();
+
+    expect(() => game.makeMove({ index: 0, player: "O" })).toThrow(/Expected X/);
+  });
+
+  it("rejects moves after the game is over", () => {
+    const game = new GameManager();
+
+    game.makeMove({ index: 0, player: "X" });
+    game.makeMove({ index: 3, player: "O" });
+    game.makeMove({ index: 1, player: "X" });
+    game.makeMove({ index: 4, player: "O" });
+    game.makeMove({ index: 2, player: "X" });
+
+    expect(game.getState().status).toBe("won");
+    expect(() => game.makeMove({ index: 8, player: "O" })).toThrow(/already over/);
+  });
+
+  it("detects a win", () => {
+    const game = new GameManager();
+
+    game.makeMove({ index: 0, player: "X" });
+    game.makeMove({ index: 3, player: "O" });
+    game.makeMove({ index: 1, player: "X" });
+    game.makeMove({ index: 4, player: "O" });
+    const final = game.makeMove({ index: 2, player: "X" });
+
+    expect(final.status).toBe("won");
+    expect(final.winner).toBe("X");
+    expect(final.board).toEqual(["X", "X", "X", "O", "O", null, null, null, null]);
+  });
+
+  it("detects a draw", () => {
+    const game = new GameManager();
+    const moves: [number, Player][] = [
+      [0, "X"], [1, "O"], [2, "X"],
+      [4, "O"], [3, "X"], [5, "O"],
+      [7, "X"], [6, "O"], [8, "X"],
+    ];
+
+    let state = game.getState();
+    for (const [index, player] of moves) {
+      state = game.makeMove({ index, player });
+    }
+
+    expect(state.status).toBe("draw");
+    expect(state.winner).toBe(null);
+  });
+
+  it("reset restores the initial state", () => {
+    const game = new GameManager();
+
+    game.makeMove({ index: 4, player: "X" });
+    const reset = game.reset();
+
+    expect(reset).toEqual(createInitialGameState());
   });
 });

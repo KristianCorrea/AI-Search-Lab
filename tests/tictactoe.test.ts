@@ -1,27 +1,60 @@
 import { describe, expect, it } from "vitest";
 import { EMPTY_BOARD, X_WIN_BOARD, O_WIN_BOARD, DRAW_BOARD } from "@/shared/constants";
-import type { Player } from "@/modules/tictactoe/types";
+import type { Board, Player } from "@/modules/tictactoe/types";
 import {
-  createEmptyBoard,
   createInitialGameState,
-  getAvailableMoves,
-  applyMove,
-  switchPlayer,
   findWinner,
   getGameStatus,
   getWinningLine,
   getWinner,
   GameManager,
 } from "@/modules/tictactoe/game";
+import {
+  findBestMoveMinimax,
+  findBestMoveAlphaBeta,
+} from "@/modules/tictactoe/ai";
+
+/** Mirror scoring constants from ai.ts for readable test expectations. */
+const WIN_SCORE = 10;
 
 describe("minimax", () => {
-  it.todo("blocks opponent winning threat");
-  it.todo("chooses winning move when available");
+  it("blocks opponent winning threat", () => {
+    // X threatens top row; O must play index 2 to block an immediate loss.
+    const board: Board = ["X", "X", null, "O", null, null, null, null, null];
+    const result = findBestMoveMinimax(board, "O");
+
+    expect(result.move.index).toBe(2);
+  });
+
+  it("chooses winning move when available", () => {
+    // X can complete the top row at index 2.
+    const board: Board = ["X", "X", null, "O", "O", null, null, null, null];
+    const result = findBestMoveMinimax(board, "X");
+
+    expect(result.move.index).toBe(2);
+    expect(result.score).toBe(WIN_SCORE);
+  });
 });
 
 describe("alpha-beta", () => {
-  it.todo("returns same move as minimax on equivalent positions");
-  it.todo("visits fewer nodes than minimax");
+  it("returns same move as minimax on equivalent positions", () => {
+    const board: Board = [...EMPTY_BOARD];
+    const minimax = findBestMoveMinimax(board, "X");
+    const alphaBeta = findBestMoveAlphaBeta(board, "X");
+
+    expect(alphaBeta.move.index).toBe(minimax.move.index);
+    expect(alphaBeta.score).toBe(minimax.score);
+  });
+
+  it("visits fewer nodes than minimax", () => {
+    const board: Board = [...EMPTY_BOARD];
+    const minimax = findBestMoveMinimax(board, "X");
+    const alphaBeta = findBestMoveAlphaBeta(board, "X");
+
+    expect(alphaBeta.nodesVisited).toBeLessThan(minimax.nodesVisited);
+    expect(alphaBeta.pruningRate).toBeGreaterThan(0);
+    expect(alphaBeta.nodesPruned).toBe(minimax.nodesVisited - alphaBeta.nodesVisited);
+  });
 });
 
 describe("winner detection", () => {

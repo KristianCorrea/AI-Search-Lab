@@ -30,7 +30,7 @@ export function BoardGrid({
   const winSet = new Set(winningLine ?? []);
 
   return (
-    <div className="grid w-full max-w-xs grid-cols-3 gap-2">
+    <div className="grid w-80 max-w-full grid-cols-3 gap-2">
       {board.map((value, i) => {
         const isWin = winSet.has(i);
         const isLast = !isWin && i === lastMoveCellIndex;

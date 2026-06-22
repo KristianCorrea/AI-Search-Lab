@@ -37,9 +37,9 @@ export default function TicTacToe() {
         />
 
         {/* Two-column layout */}
-        <div className="grid gap-8 lg:grid-cols-[auto_1fr]">
+        <div className="grid gap-8 lg:grid-cols-[20rem_1fr]">
           {/* ── Left: board ────────────────────────────────────────────── */}
-          <div className="space-y-4">
+          <div className="w-full max-w-xs shrink-0 space-y-4 lg:w-80">
             {/* History-browse banner */}
             {!game.isLiveView && game.mode === "human-ai" && (
               <HistoryBrowseBanner

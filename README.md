@@ -12,8 +12,7 @@ Interactive web application for comparing uninformed search, informed search, an
 
 **Recommended:** Open the live deployment — no install or build required.
 
-**Live app:** [https://ai-search-lab-five.vercel.app/](https://ai-search-lab-five.vercel.app/)  
-**Source code:** [https://github.com/KristianCorrea/AI-Search-Lab](https://github.com/KristianCorrea/AI-Search-Lab)
+**Live app:** [https://ai-search-lab-five.vercel.app/](https://ai-search-lab-five.vercel.app/)
 
 From the dashboard, use the navbar to open **Puzzle** or **Tic-Tac-Toe**. All algorithms, metrics, and game modes are available in the browser.
 

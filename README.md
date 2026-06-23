@@ -1,6 +1,6 @@
-# AI Search Lab
+# AI Search Lab 
 
-Interactive lab for comparing uninformed search, informed search, and adversarial game-tree algorithms.
+Interactive lab for comparing uninformed search, informed search, and adversarial game-tree algorithms. Created by Kristian Correa and Broudy Negron.
 
 ## Modules
 

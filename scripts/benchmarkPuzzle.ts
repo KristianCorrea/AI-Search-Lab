@@ -36,5 +36,3 @@ for (const [name, solver] of Object.entries(PUZZLE_SOLVERS)) {
     console.log(`${name.padEnd(10)} | not implemented`);
   }
 }
-
-console.log(JSON.stringify(results, null, 2)); 

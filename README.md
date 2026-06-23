@@ -63,7 +63,7 @@ Two lab modules share a unified metrics dashboard (`MetricCard` components):
 | ------------ | ------------ | --------------------------------------- |
 | **BFS**      | Uninformed   | Shortest path; expands level by level   |
 | **Dijkstra** | Uniform-cost | Unit edge costs; equivalent to BFS here |
-| **A**        | Informed     | Manhattan distance heuristic (default)  |
+| **A***       | Informed     | Manhattan distance heuristic (default)  |
 
 
 ### Module B — Tic-Tac-Toe (`src/modules/tictactoe/ai.ts`)

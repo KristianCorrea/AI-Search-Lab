@@ -48,6 +48,18 @@ export default function Home() {
             </Link>
           ))}
         </section>
+
+        <section className="border-t border-neutral-200 pt-8 dark:border-neutral-800">
+          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            Project Team
+          </p>
+          <p className="mt-2 text-sm font-medium text-neutral-800 dark:text-neutral-200">
+            Kristian Correa &amp; Broudy Negron
+          </p>
+          <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+            FIU Summer 2026 Artificial Intelligence w/ Professor Xian Su
+          </p>
+        </section>
       </div>
     </Layout>
   );

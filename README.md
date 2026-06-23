@@ -4,13 +4,16 @@ Interactive web application for comparing uninformed search, informed search, an
 
 **Kristian Correa & Broudy Negron**
 
+**Repository:** [github.com/KristianCorrea/AI-Search-Lab](https://github.com/KristianCorrea/AI-Search-Lab)
+
 ---
 
 ## For Graders — Start Here
 
 **Recommended:** Open the live deployment — no install or build required.
 
-**[https://ai-search-lab-five.vercel.app/](https://ai-search-lab-five.vercel.app/)**
+**Live app:** [https://ai-search-lab-five.vercel.app/](https://ai-search-lab-five.vercel.app/)  
+**Source code:** [https://github.com/KristianCorrea/AI-Search-Lab](https://github.com/KristianCorrea/AI-Search-Lab)
 
 From the dashboard, use the navbar to open **Puzzle** or **Tic-Tac-Toe**. All algorithms, metrics, and game modes are available in the browser.
 
@@ -170,6 +173,7 @@ ai-search-lab/
 - React Router, Framer Motion, Lucide React, react-dropzone
 - Vitest (unit tests)
 - Deployed on [Vercel](https://ai-search-lab-five.vercel.app/)
+- Source on [GitHub](https://github.com/KristianCorrea/AI-Search-Lab)
 
 ---
 

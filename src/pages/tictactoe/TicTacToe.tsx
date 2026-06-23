@@ -1,7 +1,12 @@
 import { RotateCcw } from "lucide-react";
 import { Layout } from "@/shared/Layout";
+import { AlgorithmAdvisoryPanel } from "@/pages/tictactoe/components/AlgorithmAdvisoryPanel";
 import { BoardGrid } from "@/pages/tictactoe/components/BoardGrid";
-import { AiVsAiSettings, HumanVsAiSettings } from "@/pages/tictactoe/components/GameSettings";
+import {
+  AiVsAiSettings,
+  HumanVsAiSettings,
+  HumanVsHumanSettings,
+} from "@/pages/tictactoe/components/GameSettings";
 import { GameOutcomeBanner } from "@/pages/tictactoe/components/GameOutcomeBanner";
 import { HistoryBrowseBanner } from "@/pages/tictactoe/components/HistoryBrowseBanner";
 import { TurnStatusBanner } from "@/pages/tictactoe/components/TurnStatusBanner";
@@ -18,6 +23,7 @@ import { useTicTacToeGame } from "@/pages/tictactoe/useTicTacToeGame";
  */
 export default function TicTacToe() {
   const game = useTicTacToeGame();
+  const showHistoryBrowse = !game.isLiveView && (game.mode === "human-ai" || game.mode === "human-human");
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -41,8 +47,7 @@ export default function TicTacToe() {
         <div className="grid gap-8 lg:grid-cols-[20rem_1fr]">
           {/* ── Left: board ────────────────────────────────────────────── */}
           <div className="w-full max-w-xs shrink-0 space-y-4 lg:w-80">
-            {/* History-browse banner */}
-            {!game.isLiveView && game.mode === "human-ai" && (
+            {showHistoryBrowse && (
               <HistoryBrowseBanner
                 effectiveStep={game.effectiveStep}
                 totalMoves={game.moveHistory.length}
@@ -52,9 +57,11 @@ export default function TicTacToe() {
 
             {game.showTurnBanner ? (
               <TurnStatusBanner
+                mode={game.mode}
                 isPlayerTurn={game.boardClickable}
                 humanPlayer={game.humanPlayer}
                 isAiThinking={game.isAiThinking}
+                currentPlayer={game.turnBannerCurrentPlayer ?? "X"}
               />
             ) : null}
 
@@ -63,7 +70,7 @@ export default function TicTacToe() {
               winningLine={game.displayWinningLine}
               lastMoveCellIndex={game.displayLastMove}
               disabled={!game.boardClickable}
-              onCellClick={game.boardClickable ? game.handleHumanMove : undefined}
+              onCellClick={game.boardClickable ? game.handleCellClick : undefined}
             />
 
             {game.boardClickable ? (
@@ -77,7 +84,7 @@ export default function TicTacToe() {
               <p
                 className={[
                   "text-sm font-medium",
-                  game.isAiThinking
+                  game.isAiThinking || game.isAnalyzing
                     ? "text-violet-600 dark:text-violet-400"
                     : "text-neutral-600 dark:text-neutral-400",
                 ].join(" ")}
@@ -112,7 +119,8 @@ export default function TicTacToe() {
               />
             )}
 
-            {/* ─ AI vs AI settings + controls ─ */}
+            {game.mode === "human-human" && <HumanVsHumanSettings />}
+
             {game.mode === "ai-ai" && (
               <AiVsAiSettings
                 algorithmX={game.algorithmX}
@@ -132,19 +140,35 @@ export default function TicTacToe() {
               />
             )}
 
-            {/* ─ Metrics ─ */}
-            <div className="space-y-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-                Metrics
-                {game.viewedRecord && (
-                  <span className="ml-2 font-normal normal-case text-neutral-400 text-xs">
-                    — Move {game.effectiveStep}
-                    {game.viewedRecord.algorithm !== "human" && ` · ${game.viewedRecord.algorithm}`}
-                  </span>
-                )}
-              </h2>
-              <MetricsPanel result={game.displayMetricsResult} algorithm={game.displayMetricsAlgo} />
-            </div>
+            {game.mode === "human-human" ? (
+              <div className="space-y-3">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+                  Algorithm Advisory
+                </h2>
+                <AlgorithmAdvisoryPanel
+                  analysis={game.advisory}
+                  isAnalyzing={game.isAnalyzing}
+                  currentPlayer={game.advisoryPlayer}
+                />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+                  Metrics
+                  {game.viewedRecord && (
+                    <span className="ml-2 font-normal normal-case text-neutral-400 text-xs">
+                      — Move {game.effectiveStep}
+                      {game.viewedRecord.algorithm !== "human" &&
+                        ` · ${game.viewedRecord.algorithm}`}
+                    </span>
+                  )}
+                </h2>
+                <MetricsPanel
+                  result={game.displayMetricsResult}
+                  algorithm={game.displayMetricsAlgo}
+                />
+              </div>
+            )}
 
             {/* ─ Move Log ─ */}
             <div className="space-y-2">
@@ -152,7 +176,7 @@ export default function TicTacToe() {
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
                   Move Log
                 </h2>
-                {!game.isLiveView && game.mode === "human-ai" && (
+                {showHistoryBrowse && (
                   <button
                     type="button"
                     onClick={game.jumpToLive}

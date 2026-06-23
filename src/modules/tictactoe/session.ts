@@ -1,7 +1,7 @@
 import type { TicTacToeAlgorithmId } from "@/shared/constants";
 import { findBestMoveMinimax, findBestMoveAlphaBeta } from "@/modules/tictactoe/ai";
 import { createEmptyBoard, getWinningLine } from "@/modules/tictactoe/game";
-import type { Board, GameState, MoveRecord, MoveResult, Player } from "@/modules/tictactoe/types";
+import type { Board, GameState, MoveRecord, MoveResult, Player, PositionAnalysis, AdvisoryConsensus } from "@/modules/tictactoe/types";
 
 export const INITIAL_BOARD: Board = createEmptyBoard();
 
@@ -13,6 +13,26 @@ export function runAiSearch(
   return algorithm === "minimax"
     ? findBestMoveMinimax(board, player)
     : findBestMoveAlphaBeta(board, player);
+}
+
+/**
+ * Run both search algorithms on the same position and compare move + score.
+ * Used by Human vs Human mode to show live algorithm advisory.
+ */
+export function analyzePosition(board: Board, player: Player): PositionAnalysis {
+  const minimax = findBestMoveMinimax(board, player);
+  const alphaBeta = findBestMoveAlphaBeta(board, player);
+
+  let consensus: AdvisoryConsensus;
+  if (minimax.move.index === alphaBeta.move.index) {
+    consensus = "agree";
+  } else if (minimax.score === alphaBeta.score) {
+    consensus = "same-score";
+  } else {
+    consensus = "disagree";
+  }
+
+  return { minimax, alphaBeta, consensus };
 }
 
 /** "R2C3" label for a flat cell index 0–8. */

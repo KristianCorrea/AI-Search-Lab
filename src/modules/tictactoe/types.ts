@@ -5,7 +5,7 @@ export type CellValue = Player | null;
 export type Board = CellValue[];
 export type GameStatus = "playing" | "won" | "draw";
 
-export type GameMode = "human-ai" | "ai-ai";
+export type GameMode = "human-ai" | "human-human" | "ai-ai";
 
 export interface GameState {
   board: Board;
@@ -43,4 +43,14 @@ export interface MoveRecord {
   winningLine: number[] | null;
   gameStatus: GameStatus;
   winner: Player | null;
+}
+
+/** How Minimax and Alpha-Beta compare on the same position. */
+export type AdvisoryConsensus = "agree" | "same-score" | "disagree";
+
+/** Side-by-side algorithm analysis for Human vs Human advisory mode. */
+export interface PositionAnalysis {
+  minimax: MoveResult;
+  alphaBeta: MoveResult;
+  consensus: AdvisoryConsensus;
 }

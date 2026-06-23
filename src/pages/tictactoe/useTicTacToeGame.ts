@@ -1,14 +1,28 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { TicTacToeAlgorithmId } from "@/shared/constants";
 import { computeAiVsAiGame } from "@/modules/tictactoe/autoplay";
 import { GameManager, getWinningLine } from "@/modules/tictactoe/game";
-import { buildMoveRecord, INITIAL_BOARD, runAiSearch } from "@/modules/tictactoe/session";
-import type { GameMode, GameState, MoveRecord, Player } from "@/modules/tictactoe/types";
+import {
+  analyzePosition,
+  buildMoveRecord,
+  INITIAL_BOARD,
+  runAiSearch,
+} from "@/modules/tictactoe/session";
+import type { GameMode, GameState, MoveRecord, Player, PositionAnalysis } from "@/modules/tictactoe/types";
 
 export interface ResetOptions {
   newMode?: GameMode;
   newHumanPlayer?: Player;
   newAiAlgo?: TicTacToeAlgorithmId;
+}
+
+/**
+ * Get the next player after a move record.
+ * @param record - The move record.
+ * @returns The next player.
+ */
+function nextPlayerAfterRecord(record: MoveRecord): Player {
+  return record.player === "X" ? "O" : "X";
 }
 
 export function useTicTacToeGame() {
@@ -25,23 +39,27 @@ export function useTicTacToeGame() {
   const [aiAiStarted, setAiAiStarted] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
 
-  // ── Live game (human-ai) ──────────────────────────────────────────────────
+  // ── Live game (human-ai + human-human) ────────────────────────────────────
   const gameManagerRef = useRef(new GameManager());
   const [liveGame, setLiveGame] = useState<GameState>(() => gameManagerRef.current.getState());
   const isAiThinkingRef = useRef(false);
   const [isAiThinking, setIsAiThinking] = useState(false);
 
+  // ── Human vs Human advisory ───────────────────────────────────────────────
+  const [advisory, setAdvisory] = useState<PositionAnalysis | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
   // ── Shared history + view ─────────────────────────────────────────────────
   const [moveHistory, setMoveHistory] = useState<MoveRecord[]>([]);
   /**
-   * null = live game view (human-ai only)
+   * null = live game view (human-ai / human-human)
    * 0    = initial empty board
    * k    = board state after move k (1-based)
    */
   const [viewStep, setViewStep] = useState<number | null>(null);
 
-  // Derived: are we showing the live game (human-ai mode, not browsing history)?
-  const isLiveView = mode === "human-ai" && viewStep === null;
+  const isLiveMode = mode === "human-ai" || mode === "human-human";
+  const isLiveView = isLiveMode && viewStep === null;
 
   // The record for the currently viewed step (null if at live game or empty board).
   const effectiveStep = viewStep ?? moveHistory.length;
@@ -59,7 +77,40 @@ export function useTicTacToeGame() {
   const displayMetricsResult = viewedRecord?.moveResult ?? null;
   const displayMetricsAlgo = viewedRecord?.algorithm ?? null;
 
-  // ── AI vs AI: auto-play timer ─────────────────────────────────────────────
+  // For Human vs Human mode, the current player and board state for algorithm analysis.
+  const advisoryContext = useMemo(() => {
+    if (mode !== "human-human") return null;
+
+    if (isLiveView) {
+      if (liveGame.status !== "playing") {
+        return { board: liveGame.board, player: null as Player | null };
+      }
+      return { board: liveGame.board, player: liveGame.currentPlayer };
+    }
+
+    if (viewStep === 0) {
+      return { board: INITIAL_BOARD, player: "X" as Player };
+    }
+
+    if (viewedRecord?.gameStatus === "playing") {
+      return {
+        board: viewedRecord.boardAfter,
+        player: nextPlayerAfterRecord(viewedRecord),
+      };
+    }
+
+    return { board: viewedRecord?.boardAfter ?? INITIAL_BOARD, player: null as Player | null };
+  }, [mode, isLiveView, liveGame.board, liveGame.status, liveGame.currentPlayer, viewStep, viewedRecord]);
+
+  /**
+   * AI vs AI playback timer.
+   *
+   * In ai-ai mode the full game is computed upfront; viewStep selects which
+   * snapshot from moveHistory is shown (0 = empty board, k = after move k).
+   * When isAutoPlaying is true, advance viewStep every 750 ms so the board
+   * replays like a slideshow. Stop at the last move and clear isAutoPlaying.
+   * No-op in other modes or when playback is paused.
+   */
   useEffect(() => {
     if (!isAutoPlaying || mode !== "ai-ai") return;
 
@@ -76,6 +127,26 @@ export function useTicTacToeGame() {
 
     return () => clearInterval(interval);
   }, [isAutoPlaying, mode, moveHistory.length]);
+
+  // ── Human vs Human: dual-algorithm advisory ───────────────────────────────
+  useEffect(() => {
+    if (mode !== "human-human" || !advisoryContext?.player) {
+      setAdvisory(null);
+      setIsAnalyzing(false);
+      return;
+    }
+
+    const { board, player } = advisoryContext;
+    setIsAnalyzing(true);
+    setAdvisory(null);
+
+    const timerId = window.setTimeout(() => {
+      setAdvisory(analyzePosition(board, player));
+      setIsAnalyzing(false);
+    }, 0);
+
+    return () => window.clearTimeout(timerId);
+  }, [mode, advisoryContext]);
 
   // ── Execute one AI move in human-ai live game ─────────────────────────────
   const executeAiResponse = useCallback((algo: TicTacToeAlgorithmId) => {
@@ -101,31 +172,39 @@ export function useTicTacToeGame() {
     ]);
   }, []);
 
-  // ── Human clicks a board cell ─────────────────────────────────────────────
-  const handleHumanMove = useCallback(
-    (cellIndex: number) => {
-      if (mode !== "human-ai" || isAiThinkingRef.current) return;
-      const state = gameManagerRef.current.getState();
-      if (state.status !== "playing" || state.currentPlayer !== humanPlayer) return;
-
-      const newState = gameManagerRef.current.makeMove({ index: cellIndex, player: humanPlayer });
+  const recordHumanMove = useCallback(
+    (cellIndex: number, player: Player, algorithm: TicTacToeAlgorithmId | "human") => {
+      const newState = gameManagerRef.current.makeMove({ index: cellIndex, player });
 
       setLiveGame({ ...newState });
       setMoveHistory((prev) => [
         ...prev,
         buildMoveRecord(
           prev.length + 1,
-          humanPlayer,
+          player,
           cellIndex,
-          "human",
+          algorithm,
           newState.board,
           null,
           newState.status,
           newState.winner,
         ),
       ]);
-      setViewStep(null); // snap back to live view
+      setViewStep(null);
+    },
+    [],
+  );
 
+  // ── Human clicks a board cell (human-ai) ──────────────────────────────────
+  const handleHumanMove = useCallback(
+    (cellIndex: number) => {
+      if (mode !== "human-ai" || isAiThinkingRef.current) return;
+      const state = gameManagerRef.current.getState();
+      if (state.status !== "playing" || state.currentPlayer !== humanPlayer) return;
+
+      recordHumanMove(cellIndex, humanPlayer, "human");
+
+      const newState = gameManagerRef.current.getState();
       if (newState.status === "playing") {
         isAiThinkingRef.current = true;
         setIsAiThinking(true);
@@ -136,7 +215,27 @@ export function useTicTacToeGame() {
         }, 350);
       }
     },
-    [mode, humanPlayer, aiAlgorithm, executeAiResponse],
+    [mode, humanPlayer, aiAlgorithm, executeAiResponse, recordHumanMove],
+  );
+
+  // ── Human clicks a board cell (human-human) ───────────────────────────────
+  const handlePlayerMove = useCallback(
+    (cellIndex: number) => {
+      if (mode !== "human-human") return;
+      const state = gameManagerRef.current.getState();
+      if (state.status !== "playing") return;
+
+      recordHumanMove(cellIndex, state.currentPlayer, "human");
+    },
+    [mode, recordHumanMove],
+  );
+
+  const handleCellClick = useCallback(
+    (cellIndex: number) => {
+      if (mode === "human-ai") handleHumanMove(cellIndex);
+      else if (mode === "human-human") handlePlayerMove(cellIndex);
+    },
+    [mode, handleHumanMove, handlePlayerMove],
   );
 
   // ── Start AI vs AI game ───────────────────────────────────────────────────
@@ -163,10 +262,11 @@ export function useTicTacToeGame() {
       setAiAiStarted(false);
       isAiThinkingRef.current = false;
       setIsAiThinking(false);
+      setAdvisory(null);
+      setIsAnalyzing(false);
       if (newMode !== mode) setMode(newMode);
       if (newHumanPlayer !== humanPlayer) setHumanPlayer(newHumanPlayer);
 
-      // AI goes first when human plays as O
       if (newMode === "human-ai" && newHumanPlayer === "O") {
         isAiThinkingRef.current = true;
         setIsAiThinking(true);
@@ -183,15 +283,14 @@ export function useTicTacToeGame() {
   // ── Move-log step selection ───────────────────────────────────────────────
   const handleStepSelect = useCallback(
     (step: number) => {
-      if (mode === "human-ai") {
-        // Clicking the latest move while live → stay live; otherwise browse
+      if (isLiveMode) {
         setViewStep(step >= moveHistory.length ? null : step);
       } else {
         setIsAutoPlaying(false);
         setViewStep(step);
       }
     },
-    [mode, moveHistory.length],
+    [isLiveMode, moveHistory.length],
   );
 
   const jumpToLive = useCallback(() => setViewStep(null), []);
@@ -220,14 +319,12 @@ export function useTicTacToeGame() {
     setIsAutoPlaying(false);
   }, [moveHistory.length]);
 
-  // ── Status text ───────────────────────────────────────────────────────────
   const statusLabel = (() => {
     if (mode === "human-ai" && isAiThinking) return "AI is thinking…";
     if (viewedRecord) {
       if (viewedRecord.gameStatus === "won") return `${viewedRecord.winner} wins!`;
       if (viewedRecord.gameStatus === "draw") return "Draw!";
-      const next: Player = viewedRecord.player === "X" ? "O" : "X";
-      return `${next}'s turn`;
+      return `${nextPlayerAfterRecord(viewedRecord)}'s turn`;
     }
     if (mode === "ai-ai" && !aiAiStarted) return "Configure algorithms and start";
     if (mode === "ai-ai" && viewStep === 0) return "X goes first — press Play or Step";
@@ -241,7 +338,6 @@ export function useTicTacToeGame() {
     return `${liveGame.currentPlayer}'s turn`;
   })();
 
-  // Game outcome to show in the result banner
   const shownStatus = viewedRecord?.gameStatus ?? (isLiveView ? liveGame.status : null);
   const shownWinner = viewedRecord?.winner ?? (isLiveView ? liveGame.winner : null);
   const outcomeText =
@@ -251,16 +347,18 @@ export function useTicTacToeGame() {
       ? "Draw! (Optimal play always draws.)"
       : null;
 
-  // Board is interactive only during your turn in human-ai live view
   const boardClickable =
-    mode === "human-ai" &&
     isLiveView &&
-    !isAiThinking &&
     liveGame.status === "playing" &&
-    liveGame.currentPlayer === humanPlayer;
+    (mode === "human-human" ||
+      (mode === "human-ai" &&
+        !isAiThinking &&
+        liveGame.currentPlayer === humanPlayer));
 
   const showTurnBanner =
-    mode === "human-ai" && isLiveView && liveGame.status === "playing";
+    isLiveView && liveGame.status === "playing" && (mode === "human-ai" || mode === "human-human");
+
+  const turnBannerCurrentPlayer = isLiveView ? liveGame.currentPlayer : null;
 
   return {
     mode,
@@ -271,6 +369,9 @@ export function useTicTacToeGame() {
     aiAiStarted,
     isAutoPlaying,
     isAiThinking,
+    isAnalyzing,
+    advisory,
+    advisoryPlayer: advisoryContext?.player ?? null,
     moveHistory,
     viewStep,
     isLiveView,
@@ -285,10 +386,13 @@ export function useTicTacToeGame() {
     outcomeText,
     boardClickable,
     showTurnBanner,
+    turnBannerCurrentPlayer,
     setAiAlgorithm,
     setAlgorithmX,
     setAlgorithmO,
     handleHumanMove,
+    handlePlayerMove,
+    handleCellClick,
     startAiAiGame,
     doReset,
     handleStepSelect,

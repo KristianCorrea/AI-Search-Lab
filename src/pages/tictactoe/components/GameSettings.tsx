@@ -57,6 +57,18 @@ export function HumanVsAiSettings({
   );
 }
 
+export function HumanVsHumanSettings() {
+  return (
+    <div className="rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
+      <h2 className="text-sm font-semibold">Human vs Human</h2>
+      <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+        Two players take turns on this device. The lab runs Minimax and Alpha-Beta on each
+        position and suggests the optimal move — both algorithms should agree on optimal play.
+      </p>
+    </div>
+  );
+}
+
 export interface AiVsAiSettingsProps {
   algorithmX: TicTacToeAlgorithmId;
   algorithmO: TicTacToeAlgorithmId;

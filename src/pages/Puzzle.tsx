@@ -3,6 +3,7 @@ import { useDropzone } from "react-dropzone";
 import { motion } from "framer-motion";
 import {
   Clock,
+  FlaskConical,
   GitBranch,
   ImagePlus,
   Pause,
@@ -16,9 +17,9 @@ import {
 import { Layout } from "@/shared/Layout";
 import { MetricCard } from "@/shared/MetricCard";
 import { formatCount, formatMs } from "@/shared/metrics";
-import { PUZZLE_ALGORITHMS, type PuzzleAlgorithmId } from "@/shared/constants";
+import { PUZZLE_ALGORITHMS, TEST_PUZZLE, type PuzzleAlgorithmId } from "@/shared/constants";
 import { sliceImage } from "@/modules/puzzle/image";
-import { applyMove, createSolvedState, getNeighbors, shufflePuzzle } from "@/modules/puzzle/board";
+import { applyMove, createSolvedState, getNeighbors, shufflePuzzle, stateFromTiles } from "@/modules/puzzle/board";
 import { PUZZLE_SOLVERS } from "@/modules/puzzle/solvers";
 import type { PuzzleMove, PuzzleState, SolverResult } from "@/modules/puzzle/types";
 
@@ -184,6 +185,12 @@ export default function Puzzle() {
     setState(shufflePuzzle(createSolvedState(3), 50));
   }, [clearReplay]);
 
+  const loadBenchmarkPuzzle = useCallback(() => {
+    clearReplay();
+    setLastResult(null);
+    setState(stateFromTiles(3, [...TEST_PUZZLE]));
+  }, [clearReplay]);
+
   const solve = useCallback(() => {
     clearReplay();
     setIsSolving(true);
@@ -334,6 +341,16 @@ export default function Puzzle() {
               >
                 <RotateCcw className="size-4" />
                 Reset
+              </button>
+              <button
+                type="button"
+                onClick={loadBenchmarkPuzzle}
+                disabled={controlsLocked}
+                title="Standardized homework test puzzle (optimal depth 14)"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-cyan-300 bg-cyan-50 px-4 py-2 text-sm font-medium text-cyan-800 hover:bg-cyan-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-cyan-600/80 dark:bg-cyan-950/25 dark:text-cyan-300 dark:hover:bg-cyan-950/45"
+              >
+                <FlaskConical className="size-4" />
+                Load benchmark puzzle
               </button>
             </div>
           </div>

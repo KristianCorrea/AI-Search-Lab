@@ -1,0 +1,80 @@
+name: Canvas Submission Zip
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      package_name:
+        description: "Folder and zip base name (e.g. Group3_HW1)"
+        required: false
+        default: "AI-Search-Lab_HW1"
+
+permissions:
+  contents: write
+
+jobs:
+  package-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test:run
+
+      - name: Create submission zip
+        env:
+          PACKAGE_NAME: ${{ github.event.inputs.package_name || 'AI-Search-Lab_HW1' }}
+        run: |
+          set -euo pipefail
+
+          STAGING="staging/${PACKAGE_NAME}"
+          mkdir -p "${STAGING}"
+
+          rsync -a \
+            --exclude 'node_modules' \
+            --exclude '.git' \
+            --exclude 'dist' \
+            --exclude 'dist-ssr' \
+            --exclude 'coverage' \
+            --exclude '.github' \
+            --exclude 'Assignment.md' \
+            --exclude 'ROADMAP.md' \
+            --exclude '*.tsbuildinfo' \
+            --exclude '.env' \
+            --exclude '.env.*' \
+            --exclude '.DS_Store' \
+            --exclude 'staging' \
+            ./ "${STAGING}/"
+
+          cd staging
+          zip -r "../${PACKAGE_NAME}.zip" "${PACKAGE_NAME}"
+          cd ..
+
+          echo "Created ${PACKAGE_NAME}.zip ($(du -h "${PACKAGE_NAME}.zip" | cut -f1))"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: submission-${{ github.run_number }}
+          name: Canvas submission #${{ github.run_number }}
+          body: |
+            Automated Canvas submission package from commit ${{ github.sha }}.
+
+            **Download `${{ github.event.inputs.package_name || 'AI-Search-Lab_HW1' }}.zip`** and upload to Canvas.
+
+            - Live app: https://ai-search-lab-five.vercel.app/
+            - Local run: `chmod +x run.sh && ./run.sh`
+          files: ${{ github.event.inputs.package_name || 'AI-Search-Lab_HW1' }}.zip
+          generate_release_notes: true
